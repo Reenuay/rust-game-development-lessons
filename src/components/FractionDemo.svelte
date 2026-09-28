@@ -7,7 +7,12 @@
 
   let xFraction = $state(0.5);
   let yFraction = $state(0.5);
-  let codeHtml = $state('');
+  // Shiki's highlighter loads asynchronously, so codeHtml can't start
+  // highlighted. Starting it at '' left the code panel visibly blank
+  // (just the "src/main.rs" title bar, nothing under it) until the
+  // highlighter finished loading — seed it with plain, unhighlighted
+  // text instead so there's always real code on screen.
+  let codeHtml = $state(plainCodeHtml(codeFor(0.5, 0.5)));
   let copyCode = $derived(codeFor(xFraction, yFraction).replace(/\n/g, '\x7f'));
 
   let iframeEl = $state(null);
@@ -20,6 +25,21 @@
   // is already a valid literal as-is.
   function formatFloat(n) {
     return Number.isInteger(n) ? `${n}.0` : `${n}`;
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+  }
+
+  // Same ec-line/code DOM shape as ecShapeTransformer below, but without
+  // syntax colors — cheap to compute synchronously, unlike the real
+  // highlighter.
+  function plainCodeHtml(code) {
+    const lines = code.replace(/\n$/, '').split('\n');
+    const body = lines
+      .map((line) => `<div class="ec-line"><div class="code">${line.length ? escapeHtml(line) : '\n'}</div></div>`)
+      .join('');
+    return `<pre data-language="rust"><code>${body}</code></pre>`;
   }
 
   function codeFor(xFraction, yFraction) {

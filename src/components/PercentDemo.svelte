@@ -7,12 +7,32 @@
 
   let xPercent = $state(50);
   let yPercent = $state(50);
-  let codeHtml = $state('');
+  // Shiki's highlighter loads asynchronously, so codeHtml can't start
+  // highlighted. Starting it at '' left the code panel visibly blank
+  // (just the "src/main.rs" title bar, nothing under it) until the
+  // highlighter finished loading — seed it with plain, unhighlighted
+  // text instead so there's always real code on screen.
+  let codeHtml = $state(plainCodeHtml(codeFor(50, 50)));
   let copyCode = $derived(codeFor(xPercent, yPercent).replace(/\n/g, '\x7f'));
 
   let iframeEl = $state(null);
   let highlighter;
   let ready = false;
+
+  function escapeHtml(s) {
+    return s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+  }
+
+  // Same ec-line/code DOM shape as ecShapeTransformer below, but without
+  // syntax colors — cheap to compute synchronously, unlike the real
+  // highlighter.
+  function plainCodeHtml(code) {
+    const lines = code.replace(/\n$/, '').split('\n');
+    const body = lines
+      .map((line) => `<div class="ec-line"><div class="code">${line.length ? escapeHtml(line) : '\n'}</div></div>`)
+      .join('');
+    return `<pre data-language="rust"><code>${body}</code></pre>`;
+  }
 
   function codeFor(xPercent, yPercent) {
     return `use macroquad::prelude::*;

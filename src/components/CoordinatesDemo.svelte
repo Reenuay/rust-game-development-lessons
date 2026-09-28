@@ -15,7 +15,12 @@
 
   let x = $state(Math.round(WORLD_WIDTH / 2));
   let y = $state(Math.round(WORLD_HEIGHT / 2));
-  let codeHtml = $state('');
+  // Shiki's highlighter loads asynchronously, so codeHtml can't start
+  // highlighted. Starting it at '' left the code panel visibly blank
+  // (just the "src/main.rs" title bar, nothing under it) until the
+  // highlighter finished loading — seed it with plain, unhighlighted
+  // text instead so there's always real code on screen.
+  let codeHtml = $state(plainCodeHtml(codeFor(x, y)));
   // Expressive Code's copy button reads the text to copy from a
   // data-code attribute, encoding newlines as \x7f instead of literal
   // "\n" (HTML attribute values collapse literal newlines to spaces).
@@ -24,6 +29,21 @@
   let iframeEl = $state(null);
   let highlighter;
   let ready = false;
+
+  function escapeHtml(s) {
+    return s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+  }
+
+  // Same ec-line/code DOM shape as ecShapeTransformer below, but without
+  // syntax colors — cheap to compute synchronously, unlike the real
+  // highlighter.
+  function plainCodeHtml(code) {
+    const lines = code.replace(/\n$/, '').split('\n');
+    const body = lines
+      .map((line) => `<div class="ec-line"><div class="code">${line.length ? escapeHtml(line) : '\n'}</div></div>`)
+      .join('');
+    return `<pre data-language="rust"><code>${body}</code></pre>`;
+  }
 
   function codeFor(x, y) {
     return `use macroquad::prelude::*;
