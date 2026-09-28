@@ -2,6 +2,7 @@ use macroquad::prelude::*;
 
 #[macroquad::main("Движение")]
 async fn main() {
+    // Начинаем с центра экрана.
     let mut x = screen_width() / 2.0;
     let mut y = screen_height() / 2.0;
 
