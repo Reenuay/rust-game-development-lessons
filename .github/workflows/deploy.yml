@@ -30,6 +30,32 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Add wasm32 target
+        run: rustup target add wasm32-unknown-unknown
+
+      - name: Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            examples/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('examples/Cargo.lock') }}
+
+      - name: Build WASM examples
+        run: cargo build --release --target wasm32-unknown-unknown --manifest-path examples/Cargo.toml
+
+      - name: Copy WASM examples into public/
+        run: |
+          set -e
+          for dir in examples/*/; do
+            name=$(basename "$dir")
+            [ -f "$dir/Cargo.toml" ] || continue
+            mkdir -p "public/wasm-examples/$name"
+            cp "examples/target/wasm32-unknown-unknown/release/$name.wasm" "public/wasm-examples/$name/$name.wasm"
+            sed "s/{{NAME}}/$name/g" examples/wasm-template.html > "public/wasm-examples/$name/index.html"
+          done
+
       - name: Build site
         run: npm run build
 

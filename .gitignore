@@ -25,3 +25,11 @@ pnpm-debug.log*
 
 # scratch files used for local verification, not meant to be committed
 *.tmp.mjs
+
+# Rust build artifacts for the WASM examples
+examples/target/
+
+# WASM examples are compiled by CI and copied here on each build;
+# the vendored mq_js_bundle.js loader (a plain file, not a directory)
+# stays tracked.
+public/wasm-examples/*/
