@@ -82,9 +82,17 @@ async fn main() {
     ready = true;
   }
 
+  // The <input min max> attributes only style the spinner buttons and
+  // mark the field :invalid — they don't stop someone from typing 200
+  // directly, which would silently contradict the lesson text's own
+  // "число от 0 до 100". Clamp for real here instead.
+  function clamp(value) {
+    return Math.min(100, Math.max(0, value));
+  }
+
   $effect(() => {
-    void xPercent;
-    void yPercent;
+    xPercent = clamp(xPercent);
+    yPercent = clamp(yPercent);
     applyPosition();
     renderCode();
   });
