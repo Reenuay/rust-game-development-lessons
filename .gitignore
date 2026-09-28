@@ -22,3 +22,6 @@ pnpm-debug.log*
 .vscode/*
 !.vscode/extensions.json
 .idea/
+
+# scratch files used for local verification, not meant to be committed
+*.tmp.mjs
