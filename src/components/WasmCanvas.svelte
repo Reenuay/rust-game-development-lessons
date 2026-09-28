@@ -119,6 +119,12 @@
     position: absolute;
     top: 0.5rem;
     right: 0.5rem;
+    /* Starlight's prose CSS adds margin-top between adjacent content
+       elements (for normal paragraph/list spacing); it doesn't know
+       this button is one of two absolutely-positioned corner controls,
+       not stacked text, so it was pushing it down and throwing off the
+       top/right offsets that are meant to match. */
+    margin: 0;
     display: flex;
     align-items: center;
     justify-content: center;
