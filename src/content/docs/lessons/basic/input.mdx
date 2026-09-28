@@ -1,0 +1,101 @@
+---
+title: Ввод с клавиатуры
+description: Узнаём, какие клавиши сейчас зажаты, ещё до того, как заставить что-то двигаться.
+sidebar:
+  order: 3
+---
+
+import WasmCanvas from '../../../../components/WasmCanvas.svelte';
+
+Игра должна реагировать на игрока, а значит — знать, какие клавиши
+сейчас зажаты. В macroquad для этого есть функция `is_key_down`: она
+принимает клавишу и возвращает `true`, если та зажата прямо сейчас, и
+`false`, если нет. Проверяется это на каждом кадре, поэтому реакция
+происходит мгновенно, без задержек.
+
+Прежде чем заставлять что-то двигаться по нажатию клавиш, полезно
+сначала просто увидеть, что нажатия вообще распознаются — этим и
+займёмся в этом уроке. Движение — тема следующего урока.
+
+## Код
+
+Замени содержимое `src/main.rs` на это:
+
+```rust title="src/main.rs"
+use macroquad::prelude::*;
+
+// Встроенный в macroquad шрифт понимает только английские буквы,
+// поэтому для русского текста нужен отдельный шрифт.
+const FONT_BYTES: &[u8] = include_bytes!("../assets/LiberationSans-Bold.ttf");
+
+fn draw_centered(text: &str, font: &Font, font_size: u16, x: f32, y: f32, color: Color) {
+    let size = measure_text(text, Some(font), font_size, 1.0);
+    let params = TextParams {
+        font: Some(font),
+        font_size,
+        color,
+        ..Default::default()
+    };
+    draw_text_ex(text, x - size.width / 2.0, y + size.height / 2.0, params);
+}
+
+#[macroquad::main("Ввод с клавиатуры")]
+async fn main() {
+    let font = load_ttf_font_from_bytes(FONT_BYTES).unwrap();
+    let font_size = 100;
+
+    loop {
+        clear_background(BLACK);
+
+        let cx = screen_width() / 2.0;
+        let cy = screen_height() / 2.0;
+        let offset_x = screen_width() * 0.16;
+        let offset_y = screen_height() * 0.145;
+
+        if is_key_down(KeyCode::Up) {
+            draw_centered("Вверх", &font, font_size, cx, cy - offset_y, YELLOW);
+        }
+        if is_key_down(KeyCode::Down) {
+            draw_centered("Вниз", &font, font_size, cx, cy + offset_y, YELLOW);
+        }
+        if is_key_down(KeyCode::Left) {
+            draw_centered("Влево", &font, font_size, cx - offset_x, cy, YELLOW);
+        }
+        if is_key_down(KeyCode::Right) {
+            draw_centered("Вправо", &font, font_size, cx + offset_x, cy, YELLOW);
+        }
+
+        next_frame().await;
+    }
+}
+```
+
+Запусти как обычно:
+
+```sh
+cargo run
+```
+
+Зажми любую из стрелок — сверху, снизу, слева или справа от центра
+появится подпись с её названием, и исчезнет, как только клавишу
+отпустишь. Вот так это выглядит — можно попробовать прямо здесь (клик
+по демо переносит на него фокус клавиатуры):
+
+<WasmCanvas name="input" client:load />
+
+## Что здесь происходит
+
+- `is_key_down(KeyCode::Up)` — главное в этом уроке. Возвращает `true`
+  все кадры, пока клавиша (в данном случае стрелка вверх) зажата, и
+  `false` в остальное время — этим и определяется, показывать подпись
+  или нет.
+- `if is_key_down(...) { ... }` — четыре одинаковых проверки, по одной
+  на каждую стрелку. Все четыре проверяются независимо, поэтому можно
+  зажать сразу несколько клавиш и увидеть несколько подписей одновременно.
+- `FONT_BYTES` и `load_ttf_font_from_bytes` — встроенный в macroquad
+  шрифт не умеет в русские буквы, поэтому в эти строки подключается
+  шрифт, который умеет. Как именно это устроено — не так важно, для
+  этого урока это просто "чтобы работали русские буквы".
+- `draw_centered` — маленькая вспомогательная функция, которая сама
+  вычисляет ширину текста (`measure_text`) и сдвигает его так, чтобы
+  он оказался ровно по центру нужной точки, а не начинался от неё.
