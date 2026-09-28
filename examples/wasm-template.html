@@ -21,30 +21,38 @@
     <canvas id="glcanvas" tabindex="1"></canvas>
     <script src="../mq_js_bundle.js"></script>
     <script>
+      // Fixed "world" resolution every demo renders at, regardless of the
+      // embedding iframe's actual physical size. mq_js_bundle.js sizes the
+      // canvas's backing buffer to match the iframe's CSS pixel size by
+      // default (see the resize() calls below) — fine on desktop, but on a
+      // small phone viewport that means macroquad's screen_width()/height()
+      // shrink too, so anything positioned by absolute pixel coordinates
+      // (like the coordinates demo's circle) ends up somewhere near the
+      // edge instead of where it logically should be. Locking the backing
+      // buffer to a constant size and letting CSS (width/height: 100% above)
+      // stretch it to fit instead keeps the "world" identical on every
+      // device — everything just scales uniformly, like a camera pulling
+      // back, rather than showing a cropped fragment of it.
+      const LOGICAL_WIDTH = 720;
+      const LOGICAL_HEIGHT = 540;
+
+      function enforceLogicalSize() {
+        if (canvas.width !== LOGICAL_WIDTH || canvas.height !== LOGICAL_HEIGHT) {
+          canvas.width = LOGICAL_WIDTH;
+          canvas.height = LOGICAL_HEIGHT;
+          if (window.wasm_exports?.resize) wasm_exports.resize(LOGICAL_WIDTH, LOGICAL_HEIGHT);
+        }
+      }
+
       load("{{NAME}}.wasm");
-      // mq_js_bundle.js defines `resize` and `canvas` globally but never
-      // wires them to anything, so the canvas's backing buffer (and
-      // macroquad's GL viewport with it) goes stale whenever this page's
-      // size changes after the first frame — which happens whenever the
-      // embedding iframe is resized by a layout reflow elsewhere on the
-      // page. The window "resize" event does not reliably fire in that
-      // case (it only covers the outer browser window resizing), so a
-      // ResizeObserver is used instead — it reacts to the iframe's own
-      // viewport changing regardless of what caused it.
-      // Debounced: during a layout transition on the parent page (e.g. a
-      // CSS transition while switching themes), the observer can fire
-      // with a transient intermediate size before things settle. Acting
-      // on that immediately can resize the canvas's backing buffer to a
-      // size that never gets corrected back, since the final size may
-      // equal the original and trigger no further callback. Only resize
-      // once the size has stopped changing for a moment.
-      let resizeTimeout;
-      new ResizeObserver(() => {
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(() => {
-          if (window.wasm_exports) resize(canvas, wasm_exports.resize);
-        }, 200);
-      }).observe(document.documentElement);
+
+      // mq_js_bundle.js resizes the canvas to match the iframe's current
+      // CSS size on load and on further layout changes; run right after
+      // to override it back to the fixed logical size. Checked on an
+      // interval rather than tied to a specific event, since it's cheap
+      // and there's no single reliable hook for "the bundle just resized
+      // the canvas again".
+      setInterval(enforceLogicalSize, 250);
     </script>
   </body>
 </html>

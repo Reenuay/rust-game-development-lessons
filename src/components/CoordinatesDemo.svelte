@@ -45,6 +45,12 @@ async fn main() {
       node.properties = {};
     },
     line(node) {
+      // A truly empty line has no children, and an empty block box has
+      // no line box to size itself by — it collapses to 0 height. Give
+      // it the same single "\n" text placeholder Expressive Code's own
+      // empty lines have, which is enough to establish one line's worth
+      // of height under the pre's white-space: pre.
+      const children = node.children.length > 0 ? node.children : [{ type: 'text', value: '\n' }];
       return {
         type: 'element',
         tagName: 'div',
@@ -54,10 +60,20 @@ async fn main() {
             type: 'element',
             tagName: 'div',
             properties: { class: 'code' },
-            children: node.children,
+            children,
           },
         ],
       };
+    },
+    // Shiki's default renderer joins line elements with a literal "\n"
+    // text node (its usual per-line wrapper is an inline <span>, which
+    // needs that newline to actually break the line). Our .ec-line divs
+    // are block-level and don't need it, but inside <pre> that stray
+    // newline is still whitespace:pre-preserved — showing up as a whole
+    // extra blank line after every line, exactly doubling the vertical
+    // rhythm the static code blocks have. Strip them.
+    postprocess(html) {
+      return html.replace(/\n(?=<div class="ec-line")/g, '');
     },
   };
 
@@ -162,11 +178,11 @@ async fn main() {
   <div class="controls">
     <label>
       <span class="label-text">x</span>
-      <input type="number" bind:value={x} step="10" />
+      <input type="number" bind:value={x} step="1" />
     </label>
     <label>
       <span class="label-text">y</span>
-      <input type="number" bind:value={y} step="10" />
+      <input type="number" bind:value={y} step="1" />
     </label>
   </div>
 
@@ -247,6 +263,11 @@ async fn main() {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    /* Starlight's prose CSS adds margin-top between adjacent content
+       elements (for normal paragraph/list spacing); it doesn't know
+       these <label>s are a flex row, not stacked text, so it was
+       pushing the second one down. */
+    margin: 0;
     line-height: 1;
     font-family: var(--__sl-font-mono, ui-monospace, monospace);
     font-size: var(--sl-text-sm);
