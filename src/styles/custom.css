@@ -1,11 +1,19 @@
-/* Narrower "On this page" panel. Starlight's own rule doesn't just use
-   --sl-sidebar-width for this column's width — it adds on top of it
-   whatever viewport space is left over past the content width, so on
-   wide screens the column grows regardless of the variable's value.
-   Overriding width directly (not just the variable) bypasses that. */
+/* Narrower "On this page" panel, without leaving a gap next to it.
+   Starlight computes the content column's width and the right
+   column's width from the same --sl-sidebar-width variable, but in
+   two different places in the DOM. Scoping the override too narrowly
+   (as earlier attempts did) shrinks only one side, leaving empty
+   space where the content column still assumes the old, wider value.
+   Redefining the variable on .main-frame (the shared ancestor of both
+   columns, but not of the left nav) keeps them in agreement, and the
+   right column's own width is then forced to match it exactly instead
+   of the extra "leftover space" Starlight normally adds on wide
+   screens. */
 @media (min-width: 72rem) {
-  .right-sidebar-container {
+  .main-frame {
     --sl-sidebar-width: 14rem;
+  }
+  .right-sidebar-container {
     width: var(--sl-sidebar-width);
   }
 }
