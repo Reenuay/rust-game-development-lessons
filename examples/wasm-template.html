@@ -42,23 +42,33 @@
       const LOGICAL_WIDTH = 2560;
       const LOGICAL_HEIGHT = 1920;
 
-      function enforceLogicalSize() {
-        if (canvas.width !== LOGICAL_WIDTH || canvas.height !== LOGICAL_HEIGHT) {
-          canvas.width = LOGICAL_WIDTH;
-          canvas.height = LOGICAL_HEIGHT;
-          if (window.wasm_exports?.resize) wasm_exports.resize(LOGICAL_WIDTH, LOGICAL_HEIGHT);
+      // mq_js_bundle.js sizes the canvas through its own top-level
+      // `resize(canvasEl, callback)` function, calling it from several
+      // places — on the WASM module's startup, on every window resize,
+      // and so on — normally basing the size on the iframe's actual CSS
+      // pixel size. Redefining it here, before load() runs, makes every
+      // one of those call sites use the fixed logical size instead,
+      // including the very first one during startup: a plain script tag
+      // sharing the page's one global scope, so this later declaration
+      // simply replaces the bundle's own earlier one.
+      //
+      // That first call matters: a Rust program that computes something
+      // once at startup (`let center_x = screen_width() / 2.0;`, say)
+      // only ever sees whatever size the canvas has *right then*. An
+      // earlier version of this file instead left the bundle's own
+      // sizing alone and corrected canvas.width/height back afterwards
+      // on a 250ms interval — fine for values recomputed every frame, but
+      // a value computed once at startup could still capture the iframe's
+      // real, un-fixed size for a moment before the interval's first tick.
+      function resize(canvasEl, callback) {
+        if (canvasEl.width !== LOGICAL_WIDTH || canvasEl.height !== LOGICAL_HEIGHT) {
+          canvasEl.width = LOGICAL_WIDTH;
+          canvasEl.height = LOGICAL_HEIGHT;
         }
+        if (callback) callback(LOGICAL_WIDTH, LOGICAL_HEIGHT);
       }
 
       load("{{NAME}}.wasm");
-
-      // mq_js_bundle.js resizes the canvas to match the iframe's current
-      // CSS size on load and on further layout changes; run right after
-      // to override it back to the fixed logical size. Checked on an
-      // interval rather than tied to a specific event, since it's cheap
-      // and there's no single reliable hook for "the bundle just resized
-      // the canvas again".
-      setInterval(enforceLogicalSize, 250);
     </script>
   </body>
 </html>
