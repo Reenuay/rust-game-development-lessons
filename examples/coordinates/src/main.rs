@@ -24,7 +24,7 @@ async fn main() {
 
         let x = f32::from_bits(POS_X.load(Ordering::Relaxed));
         let y = f32::from_bits(POS_Y.load(Ordering::Relaxed));
-        draw_circle(x, y, 20.0, YELLOW);
+        draw_circle(x, y, 40.0, YELLOW);
 
         next_frame().await;
     }
