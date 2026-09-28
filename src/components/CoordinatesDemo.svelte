@@ -1,19 +1,27 @@
 <script>
   import { createHighlighterCore } from 'shiki/core';
   import { createJavaScriptRegexEngine } from 'shiki/engine/javascript';
+  import WasmCanvas from './WasmCanvas.svelte';
 
   let { name, width = 720, height = 540 } = $props();
 
-  const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-  const src = `${base}/wasm-examples/${name}/`;
+  // The demo's actual logical resolution inside the iframe — fixed in
+  // wasm-template.html regardless of how big the demo is displayed here
+  // (that's `width`/`height` above, used only for WasmCanvas's own CSS
+  // box). Coordinates sent to the WASM module need to be in that fixed
+  // space, not this display size, or they'd land off-center.
+  const WORLD_WIDTH = 1280;
+  const WORLD_HEIGHT = 960;
 
-  let x = $state(Math.round(width / 2));
-  let y = $state(Math.round(height / 2));
+  let x = $state(Math.round(WORLD_WIDTH / 2));
+  let y = $state(Math.round(WORLD_HEIGHT / 2));
   let codeHtml = $state('');
-  let isFullscreen = $state(false);
+  // Expressive Code's copy button reads the text to copy from a
+  // data-code attribute, encoding newlines as \x7f instead of literal
+  // "\n" (HTML attribute values collapse literal newlines to spaces).
+  let copyCode = $derived(codeFor(x, y).replace(/\n/g, '\x7f'));
 
-  let iframeEl;
-  let containerEl;
+  let iframeEl = $state(null);
   let highlighter;
   let ready = false;
 
@@ -132,124 +140,44 @@ async fn main() {
       applyPosition();
     }, 100);
 
-    const onFullscreenChange = () => {
-      isFullscreen = document.fullscreenElement === containerEl;
-    };
-    document.addEventListener('fullscreenchange', onFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', onFullscreenChange);
-
     return () => {
       cancelled = true;
       clearInterval(readyPoll);
-      document.removeEventListener('fullscreenchange', onFullscreenChange);
-      document.removeEventListener('webkitfullscreenchange', onFullscreenChange);
     };
   });
-
-  function toggleFullscreen() {
-    const request = containerEl.requestFullscreen?.bind(containerEl) ?? containerEl.webkitRequestFullscreen?.bind(containerEl);
-    const exit = document.exitFullscreen?.bind(document) ?? document.webkitExitFullscreen?.bind(document);
-    if (!request || !exit) return;
-    if (document.fullscreenElement === containerEl) exit();
-    else request();
-  }
 </script>
 
-<div
-  class="coordinates-demo"
-  bind:this={containerEl}
-  style={`--demo-width: ${width}px; --demo-aspect-ratio: ${width} / ${height};`}
->
-  <div class="canvas-wrap">
-    <iframe bind:this={iframeEl} {src} loading="lazy" title={`Живой пример: ${name}`}></iframe>
-    <button type="button" class="fullscreen-toggle" onclick={toggleFullscreen} aria-label={isFullscreen ? 'Выйти из полноэкранного режима' : 'Развернуть на весь экран'}>
-      {#if isFullscreen}
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M9 3v4a2 2 0 0 1-2 2H3m18 0h-4a2 2 0 0 1-2-2V3m0 18v-4a2 2 0 0 1 2-2h4M3 15h4a2 2 0 0 1 2 2v4" />
-        </svg>
-      {:else}
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
-        </svg>
-      {/if}
-    </button>
-  </div>
-
-  <div class="controls">
-    <label>
-      <span class="label-text">x</span>
-      <input type="number" bind:value={x} step="1" />
-    </label>
-    <label>
-      <span class="label-text">y</span>
-      <input type="number" bind:value={y} step="1" />
-    </label>
-  </div>
+<div class="coordinates-demo">
+  <WasmCanvas {name} {width} {height} bind:iframeEl>
+    {#snippet children()}
+      <div class="controls">
+        <label>
+          <span class="label-text">x</span>
+          <input type="number" bind:value={x} step="1" />
+        </label>
+        <label>
+          <span class="label-text">y</span>
+          <input type="number" bind:value={y} step="1" />
+        </label>
+      </div>
+    {/snippet}
+  </WasmCanvas>
 
   <div class="expressive-code">
     <figure class="frame has-title not-content">
       <figcaption class="header"><span class="title">src/main.rs</span></figcaption>
       {@html codeHtml}
+      <div class="copy">
+        <div aria-live="polite"></div>
+        <button title="Копировать" data-copied="Скопировано!" data-code={copyCode}><div></div></button>
+      </div>
     </figure>
   </div>
 </div>
 
 <style>
   .coordinates-demo {
-    width: 100%;
-    max-width: var(--demo-width);
     margin-block: 1rem;
-  }
-
-  .canvas-wrap {
-    position: relative;
-    width: 100%;
-    aspect-ratio: var(--demo-aspect-ratio);
-    border: 1px solid var(--sl-color-hairline);
-    border-radius: 0.5rem;
-    overflow: hidden;
-    background: black;
-  }
-
-  :global(.coordinates-demo:fullscreen .canvas-wrap) {
-    max-width: none;
-    width: 100vw;
-    height: 100vh;
-    border-radius: 0;
-    aspect-ratio: auto;
-  }
-
-  iframe {
-    display: block;
-    width: 100%;
-    height: 100%;
-    border: 0;
-  }
-
-  .fullscreen-toggle {
-    position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.25rem;
-    height: 2.25rem;
-    padding: 0;
-    border: 0;
-    border-radius: 0.375rem;
-    background: rgba(0, 0, 0, 0.55);
-    color: white;
-    cursor: pointer;
-  }
-
-  .fullscreen-toggle:hover {
-    background: rgba(0, 0, 0, 0.75);
-  }
-
-  .fullscreen-toggle svg {
-    width: 1.15rem;
-    height: 1.15rem;
   }
 
   .controls {

@@ -33,8 +33,11 @@
       // stretch it to fit instead keeps the "world" identical on every
       // device — everything just scales uniformly, like a camera pulling
       // back, rather than showing a cropped fragment of it.
-      const LOGICAL_WIDTH = 720;
-      const LOGICAL_HEIGHT = 540;
+      // Sized a bit above the demo's normal (non-fullscreen) display size
+      // so stretching it to fill a large monitor in fullscreen doesn't
+      // look visibly blurry, while staying cheap to render.
+      const LOGICAL_WIDTH = 1280;
+      const LOGICAL_HEIGHT = 960;
 
       function enforceLogicalSize() {
         if (canvas.width !== LOGICAL_WIDTH || canvas.height !== LOGICAL_HEIGHT) {

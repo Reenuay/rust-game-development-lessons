@@ -5,7 +5,7 @@ sidebar:
   order: 1
 ---
 
-import WasmDemo from '../../../../components/WasmDemo.astro';
+import WasmCanvas from '../../../../components/WasmCanvas.svelte';
 
 Фреймворк — это готовый набор инструментов, который берёт на себя всё
 скучное: открыть окно, нарисовать что-то на экране, обработать нажатие
@@ -58,7 +58,7 @@ cargo run
 Откроется окно с чёрным фоном и жёлтым квадратом посередине. Вот так
 это выглядит — можно посмотреть прямо здесь, без установки:
 
-<WasmDemo name="square" />
+<WasmCanvas name="square" client:load />
 
 ## Что здесь происходит
 
