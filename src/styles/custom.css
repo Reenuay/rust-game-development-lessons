@@ -1,11 +1,11 @@
-/* Narrower "On this page" panel. Starlight derives the whole right
-   column's grid track (not just its text) from --sl-sidebar-width, the
-   same variable the left nav uses, and on wide screens it grows even
-   past that. Redefining it only inside .right-sidebar-container scopes
-   the smaller value to the right column via CSS cascade, leaving the
-   left sidebar untouched. */
+/* Narrower "On this page" panel. Starlight's own rule doesn't just use
+   --sl-sidebar-width for this column's width — it adds on top of it
+   whatever viewport space is left over past the content width, so on
+   wide screens the column grows regardless of the variable's value.
+   Overriding width directly (not just the variable) bypasses that. */
 @media (min-width: 72rem) {
   .right-sidebar-container {
     --sl-sidebar-width: 14rem;
+    width: var(--sl-sidebar-width);
   }
 }
