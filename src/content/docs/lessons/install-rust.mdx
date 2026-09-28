@@ -1,0 +1,65 @@
+---
+title: Установка Rust
+description: Как поставить Rust на компьютер и проверить, что всё работает.
+sidebar:
+  order: 1
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Rust ставится через официальный установщик `rustup`. Скачать его можно на
+сайте [rustup.rs](https://rustup.rs).
+
+<Tabs>
+<TabItem label="Windows">
+
+1. Открой [rustup.rs](https://rustup.rs) и скачай файл `rustup-init.exe`.
+2. Запусти скачанный файл двойным щелчком.
+3. Откроется чёрное окно терминала с текстом — нажми `Enter`, чтобы
+   согласиться с установкой по умолчанию.
+4. Дождись надписи `Rust is installed now. Great!` и закрой окно.
+
+</TabItem>
+<TabItem label="macOS">
+
+1. Открой приложение **Терминал**: нажми `Cmd + Пробел`, введи `Terminal`
+   и нажми `Enter`.
+2. Вставь в терминал команду ниже и нажми `Enter`:
+
+   ```sh
+   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+   ```
+
+3. Когда появится список опций, нажми `Enter`, чтобы выбрать установку
+   по умолчанию.
+4. Дождись надписи `Rust is installed now. Great!`.
+
+</TabItem>
+<TabItem label="Linux">
+
+1. Открой терминал: обычно это сочетание `Ctrl + Alt + T`, либо найди
+   приложение «Терминал» в меню программ.
+2. Вставь в терминал команду ниже и нажми `Enter`:
+
+   ```sh
+   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+   ```
+
+3. Когда появится список опций, нажми `Enter`, чтобы выбрать установку
+   по умолчанию.
+4. Дождись надписи `Rust is installed now. Great!`.
+
+</TabItem>
+</Tabs>
+
+## Проверка
+
+Закрой терминал и открой его заново — это нужно, чтобы система увидела
+новую программу. Введи команду:
+
+```sh
+rustc --version
+```
+
+Если в ответ появилась строка вида `rustc 1.xx.x (...)` — Rust установлен
+и готов к работе.
