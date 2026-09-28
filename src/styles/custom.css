@@ -1,16 +1,25 @@
-/* Narrower "On this page" panel. Starlight already grows this column
-   to fill leftover viewport width on wide screens (a deliberate
-   design, confirmed by testing without this override: it reaches the
-   viewport edge with zero blank margin) — it just uses a base width
-   (--sl-sidebar-width, shared with the left nav) that reads too wide
-   for a short link list. Lowering the base on .main-frame (the shared
-   ancestor of the content and right columns, but not of the left nav)
-   keeps Starlight's own fill-the-remaining-space formula, just from a
-   smaller starting point, sized to fit the "На этой странице" heading
-   without wrapping (measured ~13rem; 16rem leaves it comfortable
-   padding). */
-@media (min-width: 72rem) {
-  .main-frame {
-    --sl-sidebar-width: 16rem;
-  }
+/* Wide-screen layout: give leftover space to the article instead of the
+   right ("On this page") sidebar.
+   Starlight deliberately grows the right sidebar to soak up unused
+   width on wide screens, so the article's reading width can stay fixed
+   without leaving lopsided blank margin on one side only. That's by
+   design — confirmed against Starlight's own maintainers (see sources
+   below) — not a bug, and every earlier attempt to fight it by capping
+   --sl-sidebar-width just moved the same blank space around (a gap
+   next to the content column, or a column that reaches the viewport
+   edge without anything in it) instead of removing it.
+   The documented lever for this is --sl-content-width (the article's
+   max width, default 45rem): raising it lets the leftover feed the
+   article column instead, which is also where extra room is actually
+   useful (wide code blocks, tables). Long paragraphs are capped back to
+   the original 45rem measure so body text doesn't stretch to
+   uncomfortable line lengths — this pairing is what Starlight's own
+   examples site uses.
+   https://github.com/withastro/starlight/discussions/2180 */
+:root {
+  --sl-content-width: 68rem;
+}
+
+.sl-markdown-content :is(p, li) {
+  max-width: 45rem;
 }
