@@ -148,20 +148,18 @@ async fn main() {
 </script>
 
 <div class="coordinates-demo">
-  <WasmCanvas {name} {width} {height} bind:iframeEl>
-    {#snippet children()}
-      <div class="controls">
-        <label>
-          <span class="label-text">x</span>
-          <input type="number" bind:value={x} step="1" />
-        </label>
-        <label>
-          <span class="label-text">y</span>
-          <input type="number" bind:value={y} step="1" />
-        </label>
-      </div>
-    {/snippet}
-  </WasmCanvas>
+  <div class="controls" style={`max-width: ${width}px;`}>
+    <label>
+      <span class="label-text">x</span>
+      <input type="number" bind:value={x} step="1" />
+    </label>
+    <label>
+      <span class="label-text">y</span>
+      <input type="number" bind:value={y} step="1" />
+    </label>
+  </div>
+
+  <WasmCanvas {name} {width} {height} bind:iframeEl />
 
   <div class="expressive-code">
     <figure class="frame has-title not-content">
@@ -184,7 +182,7 @@ async fn main() {
     display: flex;
     align-items: center;
     gap: 1.5rem;
-    margin-top: 0.75rem;
+    margin-bottom: 0.75rem;
   }
 
   .controls label {
