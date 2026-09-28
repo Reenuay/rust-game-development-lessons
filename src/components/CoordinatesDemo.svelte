@@ -18,18 +18,62 @@
   let ready = false;
 
   function codeFor(x, y) {
-    return `draw_circle(${x}.0, ${y}.0, 20.0, YELLOW);`;
+    return `use macroquad::prelude::*;
+
+#[macroquad::main("Координаты")]
+async fn main() {
+    loop {
+        clear_background(BLACK);
+
+        draw_circle(${x}.0, ${y}.0, 20.0, YELLOW);
+
+        next_frame().await;
+    }
+}
+`;
   }
 
-  function currentEcTheme() {
-    return document.documentElement.dataset.theme === 'light' ? 'night-owl-light' : 'night-owl';
-  }
+  // Reshapes Shiki's default output into the same DOM shape Starlight's
+  // Expressive Code uses for its static code blocks (.expressive-code >
+  // .ec-line > .code), so this live snippet is styled by the exact same
+  // sitewide CSS instead of a hand-rolled lookalike.
+  const ecShapeTransformer = {
+    pre(node) {
+      node.properties = { 'data-language': 'rust' };
+    },
+    code(node) {
+      node.properties = {};
+    },
+    line(node) {
+      return {
+        type: 'element',
+        tagName: 'div',
+        properties: { class: 'ec-line' },
+        children: [
+          {
+            type: 'element',
+            tagName: 'div',
+            properties: { class: 'code' },
+            children: node.children,
+          },
+        ],
+      };
+    },
+  };
 
-  async function renderCode() {
+  function renderCode() {
     if (!highlighter) return;
+    // Two colors per token (--0 for dark, --1 for light) instead of one,
+    // matching Expressive Code's own dual-theme output exactly (down to
+    // the variable names) so its existing CSS picks the right one off
+    // the site's <html data-theme> — no separate light/dark render pass
+    // or theme-change listener needed here.
     codeHtml = highlighter.codeToHtml(codeFor(x, y), {
       lang: 'rust',
-      theme: currentEcTheme(),
+      themes: { '0': 'night-owl', '1': 'night-owl-light' },
+      defaultColor: false,
+      cssVariablePrefix: '--',
+      transformers: [ecShapeTransformer],
     });
   }
 
@@ -62,9 +106,6 @@
       renderCode();
     });
 
-    const themeObserver = new MutationObserver(() => renderCode());
-    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-
     // The WASM module loads asynchronously inside the iframe; poll until
     // its exports are ready, then apply the current position once.
     const readyPoll = setInterval(() => {
@@ -83,7 +124,6 @@
 
     return () => {
       cancelled = true;
-      themeObserver.disconnect();
       clearInterval(readyPoll);
       document.removeEventListener('fullscreenchange', onFullscreenChange);
       document.removeEventListener('webkitfullscreenchange', onFullscreenChange);
@@ -121,17 +161,20 @@
 
   <div class="controls">
     <label>
-      x
+      <span class="label-text">x</span>
       <input type="number" bind:value={x} step="10" />
     </label>
     <label>
-      y
+      <span class="label-text">y</span>
       <input type="number" bind:value={y} step="10" />
     </label>
   </div>
 
-  <div class="code">
-    {@html codeHtml}
+  <div class="expressive-code">
+    <figure class="frame has-title not-content">
+      <figcaption class="header"><span class="title">src/main.rs</span></figcaption>
+      {@html codeHtml}
+    </figure>
   </div>
 </div>
 
@@ -195,6 +238,7 @@
 
   .controls {
     display: flex;
+    align-items: center;
     gap: 1.5rem;
     margin-top: 0.75rem;
   }
@@ -203,6 +247,7 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    line-height: 1;
     font-family: var(--__sl-font-mono, ui-monospace, monospace);
     font-size: var(--sl-text-sm);
     color: var(--sl-color-text);
@@ -210,24 +255,17 @@
 
   .controls input {
     width: 5.5rem;
-    padding: 0.25rem 0.5rem;
+    height: 1.75rem;
+    padding: 0 0.5rem;
     border: 1px solid var(--sl-color-hairline);
     border-radius: 0.25rem;
     background: var(--sl-color-bg);
     color: var(--sl-color-text);
     font: inherit;
+    line-height: 1.75rem;
   }
 
-  .code {
+  .expressive-code {
     margin-top: 0.75rem;
-    border-radius: 0.5rem;
-    overflow: hidden;
-    font-size: var(--sl-text-sm);
-  }
-
-  .code :global(pre) {
-    margin: 0;
-    padding: 0.75rem 1rem;
-    overflow-x: auto;
   }
 </style>
