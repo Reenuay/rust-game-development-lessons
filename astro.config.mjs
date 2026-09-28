@@ -15,10 +15,25 @@ export default defineConfig({
       social: [
         { icon: 'github', label: 'GitHub', href: 'https://github.com/reenuay/rust-game-development-lessons' },
       ],
+      components: {
+        ThemeSelect: './src/components/ThemeSelect.astro',
+      },
       sidebar: [
         {
-          label: 'Уроки',
-          items: [{ autogenerate: { directory: 'lessons' } }],
+          label: 'Подготовка',
+          items: [{ autogenerate: { directory: 'lessons/setup' } }],
+        },
+        {
+          label: 'Базовый уровень',
+          items: [{ autogenerate: { directory: 'lessons/basic' } }],
+        },
+        {
+          label: 'Средний уровень',
+          items: [{ autogenerate: { directory: 'lessons/medium' } }],
+        },
+        {
+          label: 'Сложный уровень',
+          items: [{ autogenerate: { directory: 'lessons/hard' } }],
         },
       ],
     }),

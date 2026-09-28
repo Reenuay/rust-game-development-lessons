@@ -1,0 +1,114 @@
+---
+import { Icon } from '@astrojs/starlight/components';
+
+const options = [
+  { value: 'light', label: 'Светлая тема', icon: 'sun' as const },
+  { value: 'auto', label: 'Системная тема', icon: 'laptop' as const },
+  { value: 'dark', label: 'Тёмная тема', icon: 'moon' as const },
+];
+---
+
+<starlight-theme-select class="theme-select">
+  {
+    options.map(({ value, label, icon }) => (
+      <button type="button" data-theme-value={value} aria-label={label} aria-pressed="false">
+        <Icon name={icon} />
+      </button>
+    ))
+  }
+</starlight-theme-select>
+
+{/* Inlined to avoid FOUC. Uses global scope from `ThemeProvider.astro` */}
+<script is:inline>
+  StarlightThemeProvider.updatePickers();
+</script>
+
+<script>
+  type Theme = 'auto' | 'dark' | 'light';
+
+  const storageKey = 'starlight-theme';
+
+  const parseTheme = (theme: unknown): Theme =>
+    theme === 'auto' || theme === 'dark' || theme === 'light' ? theme : 'auto';
+
+  const loadTheme = (): Theme =>
+    parseTheme(typeof localStorage !== 'undefined' && localStorage.getItem(storageKey));
+
+  function storeTheme(theme: Theme): void {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(storageKey, theme === 'light' || theme === 'dark' ? theme : '');
+    }
+  }
+
+  const getPreferredColorScheme = (): Theme =>
+    matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+
+  function onThemeChange(theme: Theme): void {
+    StarlightThemeProvider.updatePickers(theme);
+    document.documentElement.dataset.theme = theme === 'auto' ? getPreferredColorScheme() : theme;
+    storeTheme(theme);
+  }
+
+  matchMedia(`(prefers-color-scheme: light)`).addEventListener('change', () => {
+    if (loadTheme() === 'auto') onThemeChange('auto');
+  });
+
+  class StarlightThemeSelect extends HTMLElement {
+    constructor() {
+      super();
+      const theme = loadTheme();
+      onThemeChange(theme);
+      this.#reflect(theme);
+      this.addEventListener('click', (e) => {
+        const button = (e.target as HTMLElement).closest('button');
+        const value = button?.dataset.themeValue;
+        if (!value) return;
+        const theme = parseTheme(value);
+        onThemeChange(theme);
+        this.#reflect(theme);
+      });
+    }
+
+    #reflect(theme: Theme) {
+      this.querySelectorAll('button').forEach((button) => {
+        button.setAttribute('aria-pressed', String(button.dataset.themeValue === theme));
+      });
+    }
+  }
+  customElements.define('starlight-theme-select', StarlightThemeSelect);
+</script>
+
+<style>
+  .theme-select {
+    display: flex;
+    align-items: center;
+    gap: 0.125rem;
+    padding: 0.1875rem;
+    border: 1px solid var(--sl-color-hairline);
+    border-radius: 999px;
+    background-color: var(--sl-color-gray-6);
+  }
+
+  button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--sl-color-gray-3);
+    cursor: pointer;
+  }
+
+  button:hover {
+    color: var(--sl-color-text);
+  }
+
+  button[aria-pressed='true'] {
+    background-color: var(--sl-color-accent-low);
+    color: var(--sl-color-accent-high);
+  }
+</style>
