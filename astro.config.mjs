@@ -3,6 +3,8 @@ import starlight from '@astrojs/starlight';
 import svelte from '@astrojs/svelte';
 
 export default defineConfig({
+  site: 'https://reenuay.github.io',
+  base: '/rust-game-development-lessons',
   integrations: [
     starlight({
       title: 'Rust Game Dev',
