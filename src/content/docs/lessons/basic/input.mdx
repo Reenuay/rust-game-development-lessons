@@ -26,51 +26,11 @@ use macroquad::prelude::*;
 
 #[macroquad::main("Ввод с клавиатуры")]
 async fn main() {
-    let size = 130.0;
-
     loop {
         clear_background(BLACK);
 
-        let cx = screen_width() / 2.0;
-        let cy = screen_height() / 2.0;
-        let offset_x = screen_width() * 0.16;
-        let offset_y = screen_height() * 0.145;
-
         if is_key_down(KeyCode::Up) {
-            let (ax, ay) = (cx, cy - offset_y);
-            draw_triangle(
-                vec2(ax, ay - size),
-                vec2(ax - size, ay + size),
-                vec2(ax + size, ay + size),
-                RED,
-            );
-        }
-        if is_key_down(KeyCode::Down) {
-            let (ax, ay) = (cx, cy + offset_y);
-            draw_triangle(
-                vec2(ax, ay + size),
-                vec2(ax - size, ay - size),
-                vec2(ax + size, ay - size),
-                YELLOW,
-            );
-        }
-        if is_key_down(KeyCode::Left) {
-            let (ax, ay) = (cx - offset_x, cy);
-            draw_triangle(
-                vec2(ax - size, ay),
-                vec2(ax + size, ay - size),
-                vec2(ax + size, ay + size),
-                GREEN,
-            );
-        }
-        if is_key_down(KeyCode::Right) {
-            let (ax, ay) = (cx + offset_x, cy);
-            draw_triangle(
-                vec2(ax + size, ay),
-                vec2(ax - size, ay - size),
-                vec2(ax - size, ay + size),
-                BLUE,
-            );
+            draw_circle(screen_width() / 2.0, screen_height() / 2.0, 100.0, YELLOW);
         }
 
         next_frame().await;
@@ -84,8 +44,7 @@ async fn main() {
 cargo run
 ```
 
-Зажми любую из стрелок — сверху, снизу, слева или справа от центра
-появится цветной треугольник-стрелка, указывающий в ту же сторону, и
+Зажми стрелку вверх — по центру экрана появится жёлтый кружок, и
 исчезнет, как только клавишу отпустишь. Вот так это выглядит — можно
 попробовать прямо здесь (клик по демо переносит на него фокус
 клавиатуры):
@@ -95,14 +54,9 @@ cargo run
 ## Что здесь происходит
 
 - `is_key_down(KeyCode::Up)` — главное в этом уроке. Возвращает `true`
-  все кадры, пока клавиша (в данном случае стрелка вверх) зажата, и
-  `false` в остальное время — этим и определяется, рисовать
-  треугольник или нет.
-- `if is_key_down(...) { ... }` — четыре одинаковых проверки, по одной
-  на каждую стрелку. Все четыре проверяются независимо, поэтому можно
-  зажать сразу несколько клавиш и увидеть несколько треугольников
-  одновременно.
-- `draw_triangle(v1, v2, v3, цвет)` — рисует залитый треугольник по
-  трём точкам. `vec2(x, y)` — просто пара координат одной точки.
-  Меняя, какая из трёх точек дальше всего от остальных, получаем
-  треугольник, "смотрящий" в нужную сторону.
+  все кадры, пока зажата стрелка вверх, и `false` в остальное время —
+  этим и определяется, рисовать кружок или нет.
+- `if is_key_down(...) { ... }` — код внутри выполняется только пока
+  условие истинно, то есть только пока клавиша зажата. Отпустил —
+  условие стало `false`, и на этом кадре `draw_circle` уже не
+  вызывается.
