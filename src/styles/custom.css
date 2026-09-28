@@ -11,7 +11,7 @@
    screens. */
 @media (min-width: 72rem) {
   .main-frame {
-    --sl-sidebar-width: 14rem;
+    --sl-sidebar-width: 10rem;
   }
   .right-sidebar-container {
     width: var(--sl-sidebar-width);
