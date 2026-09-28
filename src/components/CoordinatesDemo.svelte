@@ -10,8 +10,8 @@
   // (that's `width`/`height` above, used only for WasmCanvas's own CSS
   // box). Coordinates sent to the WASM module need to be in that fixed
   // space, not this display size, or they'd land off-center.
-  const WORLD_WIDTH = 1280;
-  const WORLD_HEIGHT = 960;
+  const WORLD_WIDTH = 2560;
+  const WORLD_HEIGHT = 1920;
 
   let x = $state(Math.round(WORLD_WIDTH / 2));
   let y = $state(Math.round(WORLD_HEIGHT / 2));
@@ -33,7 +33,7 @@ async fn main() {
     loop {
         clear_background(BLACK);
 
-        draw_circle(${x}.0, ${y}.0, 20.0, YELLOW);
+        draw_circle(${x}.0, ${y}.0, 40.0, YELLOW);
 
         next_frame().await;
     }

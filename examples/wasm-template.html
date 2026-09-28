@@ -33,11 +33,14 @@
       // stretch it to fit instead keeps the "world" identical on every
       // device — everything just scales uniformly, like a camera pulling
       // back, rather than showing a cropped fragment of it.
-      // Sized a bit above the demo's normal (non-fullscreen) display size
-      // so stretching it to fill a large monitor in fullscreen doesn't
-      // look visibly blurry, while staying cheap to render.
-      const LOGICAL_WIDTH = 1280;
-      const LOGICAL_HEIGHT = 960;
+      // Sized well above the demo's normal (non-fullscreen) display size
+      // so stretching it to fill even a large monitor in fullscreen
+      // doesn't look blurry. Cheap to render regardless of resolution —
+      // these demos draw a couple of flat-shaded 2D shapes, not anything
+      // fill-rate-heavy — so there's little cost to sizing up for crisp
+      // fullscreen on a big screen.
+      const LOGICAL_WIDTH = 2560;
+      const LOGICAL_HEIGHT = 1920;
 
       function enforceLogicalSize() {
         if (canvas.width !== LOGICAL_WIDTH || canvas.height !== LOGICAL_HEIGHT) {

@@ -23,3 +23,26 @@
 .sl-markdown-content :is(p, li) {
   max-width: 45rem;
 }
+
+/* On a page with both the left nav and a right "On this page" panel,
+   Starlight's own TwoColumnContent.astro sets
+   --sl-content-margin-inline: auto 0 on the content column — right
+   margin pinned to 0, left margin auto — so when the column's track is
+   wider than --sl-content-width (now common after raising it above),
+   all the slack collapses into the left side only, instead of being
+   split. The content reads as pushed right / off-center, with a
+   visibly bigger gap on the left than the right (measured 92px vs
+   24px at 1920px width on this site). Restoring a plain `auto` here
+   splits the slack evenly on both sides again, like normal centering.
+   Source of the original rule: https://github.com/withastro/starlight/blob/main/packages/starlight/components/TwoColumnContent.astro
+
+   A :root override alone doesn't reach this: custom properties only
+   fall back to an ancestor's value through inheritance when nothing
+   matches the element itself, and .main-pane already has its own
+   (layered) declaration, so it never looks past that to :root at all.
+   Targeting .main-pane directly is what actually competes with it —
+   unlayered beats layered regardless of the layered rule's higher
+   selector specificity. */
+.main-pane {
+  --sl-content-margin-inline: auto;
+}
