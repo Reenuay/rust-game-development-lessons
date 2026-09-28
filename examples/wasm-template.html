@@ -19,6 +19,28 @@
   </head>
   <body>
     <canvas id="glcanvas" tabindex="1"></canvas>
+    <script>
+      // mq_js_bundle.js calls canvas.focus() as soon as it sets up WebGL
+      // — synchronously, as part of its own top-level code, the moment
+      // the script below finishes loading, before any script after it
+      // gets a chance to run. A focus call on an element inside an
+      // iframe that isn't fully in view makes the browser auto-scroll
+      // the whole parent page down to it, which was yanking readers
+      // away from the lesson text they were still reading — for every
+      // demo, including ones that don't even use the keyboard. The
+      // canvas doesn't need focus until someone actually means to use
+      // it (see the click-to-focus instructions in "Как читать уроки"),
+      // so patch focus() on this element, here, before the bundle script
+      // below ever runs, to keep the browser from scrolling to it
+      // without losing focus itself. Deliberately not "const canvas =
+      // ..." — the bundle declares that same name itself right after
+      // this script tag, and both share one global scope.
+      const glcanvas = document.querySelector('#glcanvas');
+      const nativeFocus = HTMLElement.prototype.focus;
+      glcanvas.focus = function (options) {
+        nativeFocus.call(this, { preventScroll: true, ...options });
+      };
+    </script>
     <script src="../mq_js_bundle.js"></script>
     <script>
       // Fixed "world" resolution every demo renders at, regardless of the
