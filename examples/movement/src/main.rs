@@ -9,15 +9,19 @@ async fn main() {
     loop {
         clear_background(BLACK);
 
+        // Стрелка вверх — двигаем вверх.
         if is_key_down(KeyCode::Up) {
             y -= 8.0;
         }
+        // Стрелка вниз — двигаем вниз.
         if is_key_down(KeyCode::Down) {
             y += 8.0;
         }
+        // Стрелка влево — двигаем влево.
         if is_key_down(KeyCode::Left) {
             x -= 8.0;
         }
+        // Стрелка вправо — двигаем вправо.
         if is_key_down(KeyCode::Right) {
             x += 8.0;
         }
