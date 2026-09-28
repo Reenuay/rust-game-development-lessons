@@ -1,0 +1,8 @@
+/* Narrower "On this page" panel: Starlight sizes it off --sl-sidebar-width,
+   which is shared with the left nav, so it's overridden here directly
+   instead of shrinking the left sidebar too. */
+@media (min-width: 72rem) {
+  .right-sidebar-panel .sl-container {
+    max-width: 12rem;
+  }
+}

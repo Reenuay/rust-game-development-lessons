@@ -18,6 +18,7 @@ export default defineConfig({
       components: {
         ThemeSelect: './src/components/ThemeSelect.astro',
       },
+      customCss: ['./src/styles/custom.css'],
       sidebar: [
         {
           label: 'Подготовка',
