@@ -8,9 +8,9 @@ export default defineConfig({
   integrations: [
     starlight({
       title: 'Rust Game Dev',
-      defaultLocale: 'ru',
+      defaultLocale: 'root',
       locales: {
-        ru: { label: 'Русский', lang: 'ru' },
+        root: { label: 'Русский', lang: 'ru' },
       },
       social: [
         { icon: 'github', label: 'GitHub', href: 'https://github.com/reenuay/rust-game-development-lessons' },
