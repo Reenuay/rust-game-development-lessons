@@ -22,6 +22,29 @@
     <script src="../mq_js_bundle.js"></script>
     <script>
       load("{{NAME}}.wasm");
+      // mq_js_bundle.js defines `resize` and `canvas` globally but never
+      // wires them to anything, so the canvas's backing buffer (and
+      // macroquad's GL viewport with it) goes stale whenever this page's
+      // size changes after the first frame — which happens whenever the
+      // embedding iframe is resized by a layout reflow elsewhere on the
+      // page. The window "resize" event does not reliably fire in that
+      // case (it only covers the outer browser window resizing), so a
+      // ResizeObserver is used instead — it reacts to the iframe's own
+      // viewport changing regardless of what caused it.
+      // Debounced: during a layout transition on the parent page (e.g. a
+      // CSS transition while switching themes), the observer can fire
+      // with a transient intermediate size before things settle. Acting
+      // on that immediately can resize the canvas's backing buffer to a
+      // size that never gets corrected back, since the final size may
+      // equal the original and trigger no further callback. Only resize
+      // once the size has stopped changing for a moment.
+      let resizeTimeout;
+      new ResizeObserver(() => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+          if (window.wasm_exports) resize(canvas, wasm_exports.resize);
+        }, 200);
+      }).observe(document.documentElement);
     </script>
   </body>
 </html>
