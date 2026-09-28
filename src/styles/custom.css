@@ -16,4 +16,15 @@
   .right-sidebar-container {
     width: var(--sl-sidebar-width);
   }
+
+  /* .right-sidebar is position: fixed, so its own "width: 100%" resolves
+     against the viewport, not against .right-sidebar-container. That's
+     normally harmless (the excess just overflows off-screen), but it
+     means .right-sidebar-panel inside it (which has no width of its
+     own) also spans nearly the full viewport — which is what shows up
+     as a huge box in devtools even though only its narrow text is
+     visible. Pin it to the same width explicitly. */
+  .right-sidebar {
+    width: var(--sl-sidebar-width);
+  }
 }
