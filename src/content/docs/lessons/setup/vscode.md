@@ -34,7 +34,8 @@ sidebar:
 ## Открываем проект
 
 Открой в VS Code папку `hello_world`, которую создал `cargo new` в
-прошлом уроке: **File → Open Folder** и выбери эту папку.
+уроке [Hello World](../hello-world/): **File → Open Folder** и выбери
+эту папку.
 
 ## Терминал внутри VS Code
 
