@@ -92,12 +92,21 @@ export function loadRustHighlighter() {
 }
 
 export function highlightRust(highlighter, code) {
+  // Our codeFor() template literals always end with a trailing "\n"
+  // right before the closing backtick — Shiki turns that into a
+  // genuine extra empty line at the bottom of the highlighted output.
+  // Markdown's own fenced code blocks don't have that problem (their
+  // content doesn't include a trailing newline to begin with), which
+  // is why only the live panels grew the extra blank line. Strip it so
+  // both match.
+  const trimmedCode = code.replace(/\n+$/, '');
+
   // Two colors per token (--0 for dark, --1 for light) instead of one,
   // matching Expressive Code's own dual-theme output exactly (down to
   // the variable names) so its existing CSS picks the right one off
   // the site's <html data-theme> — no separate light/dark render pass
   // or theme-change listener needed here.
-  return highlighter.codeToHtml(code, {
+  return highlighter.codeToHtml(trimmedCode, {
     lang: 'rust',
     themes: { '0': 'night-owl', '1': 'night-owl-light' },
     defaultColor: false,
