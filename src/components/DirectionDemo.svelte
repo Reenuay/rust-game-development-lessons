@@ -33,6 +33,12 @@
     return markedCode([
       `use macroquad::prelude::*;
 
+// Длина одна и та же на каждом кадре, поэтому это константа
+// (как в «Константах»), а не переменная внутри loop.
+const LENGTH: f32 = `,
+      { field: 'length', value: formatFloat(length) },
+      `;
+
 #[macroquad::main("Направление")]
 async fn main() {
     loop {
@@ -54,13 +60,9 @@ async fn main() {
         let direction_x = dx / distance;
         let direction_y = dy / distance;
 
-        let length = `,
-      { field: 'length', value: formatFloat(length) },
-      `;
-
         // Растягиваем направление до нужной длины.
-        let end_x = center_x + direction_x * length;
-        let end_y = center_y + direction_y * length;
+        let end_x = center_x + direction_x * LENGTH;
+        let end_y = center_y + direction_y * LENGTH;
 
         // Белая точка — неподвижный центр.
         draw_circle(center_x, center_y, 10.0, WHITE);

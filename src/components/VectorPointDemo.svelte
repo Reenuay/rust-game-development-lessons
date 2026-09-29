@@ -30,21 +30,23 @@
     return markedCode([
       `use macroquad::prelude::*;
 
+// Вектор один и тот же на каждом кадре, поэтому это константы
+// (как в «Константах»), а не переменные внутри loop.
+const VECTOR_X: f32 = `,
+      { field: 'vectorX', value: formatFloat(vectorX) },
+      `;
+const VECTOR_Y: f32 = `,
+      { field: 'vectorY', value: formatFloat(vectorY) },
+      `;
+
 #[macroquad::main("Точка плюс вектор")]
 async fn main() {
     loop {
         clear_background(BLACK);
 
-        let vector_x = `,
-      { field: 'vectorX', value: formatFloat(vectorX) },
-      `;
-        let vector_y = `,
-      { field: 'vectorY', value: formatFloat(vectorY) },
-      `;
-
         // Тот же вектор, нарисованный от истинного (0, 0).
-        draw_line(0.0, 0.0, vector_x, vector_y, 4.0, GRAY);
-        draw_circle(vector_x, vector_y, 10.0, GRAY);
+        draw_line(0.0, 0.0, VECTOR_X, VECTOR_Y, 4.0, GRAY);
+        draw_circle(VECTOR_X, VECTOR_Y, 10.0, GRAY);
 
         // Координаты курсора.
         let (mouse_x, mouse_y) = mouse_position();
@@ -53,8 +55,8 @@ async fn main() {
         draw_circle(mouse_x, mouse_y, 6.0, WHITE);
 
         // Тот же вектор, прибавленный к курсору: точка + вектор.
-        draw_line(mouse_x, mouse_y, mouse_x + vector_x, mouse_y + vector_y, 4.0, YELLOW);
-        draw_circle(mouse_x + vector_x, mouse_y + vector_y, 10.0, YELLOW);
+        draw_line(mouse_x, mouse_y, mouse_x + VECTOR_X, mouse_y + VECTOR_Y, 4.0, YELLOW);
+        draw_circle(mouse_x + VECTOR_X, mouse_y + VECTOR_Y, 10.0, YELLOW);
 
         next_frame().await;
     }

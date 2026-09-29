@@ -33,14 +33,16 @@
     return markedCode([
       `use macroquad::prelude::*;
 
+// Радиус один и тот же на каждом кадре, поэтому это константа
+// (как в «Константах»), а не переменная внутри loop.
+const RADIUS: f32 = `,
+      { field: 'radius', value: formatFloat(radius) },
+      `;
+
 #[macroquad::main("Радиус обнаружения")]
 async fn main() {
     loop {
         clear_background(BLACK);
-
-        let radius = `,
-      { field: 'radius', value: formatFloat(radius) },
-      `;
 
         // Центр экрана — здесь же стоит турель.
         let center_x = screen_width() / 2.0;
@@ -55,10 +57,10 @@ async fn main() {
         let distance = (dx * dx + dy * dy).sqrt();
 
         // Контур — радиус обнаружения турели.
-        draw_circle_lines(center_x, center_y, radius, 3.0, GRAY);
+        draw_circle_lines(center_x, center_y, RADIUS, 3.0, GRAY);
 
         // Турель красная, если игрок внутри радиуса, иначе синяя.
-        if distance < radius {
+        if distance < RADIUS {
             draw_circle(center_x, center_y, 40.0, RED);
         } else {
             draw_circle(center_x, center_y, 40.0, BLUE);
