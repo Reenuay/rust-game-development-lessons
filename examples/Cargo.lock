@@ -426,6 +426,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "turret"
+version = "0.1.0"
+dependencies = [
+ "macroquad",
+]
+
+[[package]]
 name = "vector"
 version = "0.1.0"
 dependencies = [
