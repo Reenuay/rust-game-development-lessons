@@ -121,9 +121,16 @@ async fn main() {
 
   // No clamp on the offset itself — a fixed pixel offset that ignores
   // how big the circle is (even ending up outside it) is exactly the
-  // point being made here.
+  // point being made here. Still need to *read* it directly here
+  // though (not just inside applyPosition/renderCode): on the very
+  // first run those two bail out early (no WASM exports / no
+  // highlighter yet) before ever touching `offset`, so Svelte never
+  // registers it as a dependency of this effect — changing the offset
+  // field would then silently do nothing until radius changed too and
+  // forced a re-run that finally read it.
   $effect(() => {
     radius = clampRadius(radius);
+    void offset;
     applyPosition();
     renderCode();
   });
