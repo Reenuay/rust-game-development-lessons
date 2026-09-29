@@ -2,10 +2,10 @@
   // Shared by every demo's control row (x/y, percent, radius, ...) —
   // was duplicated label+input markup and CSS in seven different
   // components before this.
-  let { label, value = $bindable(), min, max, step, onfocus, onblur } = $props();
+  let { label, value = $bindable(), min, max, step, onfocus, onblur, onmouseenter, onmouseleave } = $props();
 </script>
 
-<label>
+<label {onmouseenter} {onmouseleave}>
   <span class="label-text">{label}</span>
   <input type="number" bind:value {min} {max} {step} {onfocus} {onblur} />
 </label>

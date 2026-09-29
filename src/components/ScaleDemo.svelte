@@ -11,6 +11,13 @@
   let n = $state(5);
   let p = $state(0.5);
 
+  // Highlights which number in the SVG a field controls, while the
+  // field is hovered or focused — with N and P both changing several
+  // numbers on screen at once (the trapezoid's width, the red line,
+  // two labels), it wasn't obvious which one belongs to which input.
+  let highlightN = $state(false);
+  let highlightP = $state(false);
+
   function clampN(value) {
     return Math.min(50, Math.max(1, Math.round(value)));
   }
@@ -85,7 +92,12 @@
       y2={Y_BOTTOM}
       class="percent-line"
     />
-    <text x={clampLabelX(topX(p))} y={PERCENT_LABEL_TOP_Y} class="percent-label">{formatLabel(p)}</text>
+    <text
+      x={clampLabelX(topX(p))}
+      y={PERCENT_LABEL_TOP_Y}
+      class="percent-label"
+      class:pulse-percent={highlightP}
+    >{formatLabel(p)}</text>
     <text x={clampLabelX(bottomX(p))} y={PERCENT_LABEL_BOTTOM_Y} class="percent-label">{formatLabel(p * n)}</text>
 
     <line x1={PAD} y1={Y_TOP} x2={PAD + topWidth} y2={Y_TOP} class="axis-line" />
@@ -94,12 +106,37 @@
 
     <line x1={PAD} y1={Y_BOTTOM} x2={PAD + DRAW_WIDTH} y2={Y_BOTTOM} class="axis-line" />
     <text x={PAD} y={TICK_BOTTOM_Y} class="tick-label">0</text>
-    <text x={PAD + DRAW_WIDTH} y={TICK_BOTTOM_Y} class="tick-label">{n}</text>
+    <text
+      x={PAD + DRAW_WIDTH}
+      y={TICK_BOTTOM_Y}
+      class="tick-label"
+      class:pulse-tick={highlightN}
+    >{n}</text>
   </svg>
 
   <div class="controls" style={`max-width: ${width}px;`}>
-    <NumberField label="N" bind:value={n} min="1" max="50" step="1" />
-    <NumberField label="P" bind:value={p} min="0" max="1" step="0.01" />
+    <NumberField
+      label="N"
+      bind:value={n}
+      min="1"
+      max="50"
+      step="1"
+      onmouseenter={() => (highlightN = true)}
+      onmouseleave={() => (highlightN = false)}
+      onfocus={() => (highlightN = true)}
+      onblur={() => (highlightN = false)}
+    />
+    <NumberField
+      label="P"
+      bind:value={p}
+      min="0"
+      max="1"
+      step="0.01"
+      onmouseenter={() => (highlightP = true)}
+      onmouseleave={() => (highlightP = false)}
+      onfocus={() => (highlightP = true)}
+      onblur={() => (highlightP = false)}
+    />
   </div>
 </div>
 
@@ -144,6 +181,49 @@
     font-weight: 600;
     font-family: var(--__sl-font-mono, ui-monospace, monospace);
     text-anchor: middle;
+  }
+
+  /* Hovering/focusing a field "pulses" its number in the SVG — a
+     gentle scale + glow breathing loop, not a blink, so it reads as
+     "this one" rather than as an alert. Needs transform-box: fill-box
+     or an SVG <text> scales from the viewport origin (0,0) instead of
+     its own center. */
+  .pulse-tick,
+  .pulse-percent {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  .pulse-tick {
+    animation: pulse-tick 1.2s ease-in-out infinite;
+  }
+
+  .pulse-percent {
+    animation: pulse-percent 1.2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-tick {
+    0%,
+    100% {
+      transform: scale(1);
+      filter: drop-shadow(0 0 0 var(--sl-color-accent));
+    }
+    50% {
+      transform: scale(1.18);
+      filter: drop-shadow(0 0 5px var(--sl-color-accent));
+    }
+  }
+
+  @keyframes pulse-percent {
+    0%,
+    100% {
+      transform: scale(1);
+      filter: drop-shadow(0 0 0 #ef4444);
+    }
+    50% {
+      transform: scale(1.18);
+      filter: drop-shadow(0 0 5px #ef4444);
+    }
   }
 
   .controls {
