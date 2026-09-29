@@ -1,20 +1,20 @@
 <script>
-  import { createHighlighterCore } from 'shiki/core';
-  import { createJavaScriptRegexEngine } from 'shiki/engine/javascript';
   import WasmCanvas from './WasmCanvas.svelte';
   import NumberField from './NumberField.svelte';
+  import CodePanel from './CodePanel.svelte';
+  import { loadRustHighlighter, highlightRust, plainCodeHtml } from '../lib/rustHighlight.js';
 
   let { name, width = 720, height = 540 } = $props();
 
   let radius = $state(400);
   let offset = $state(200);
+  let code = $derived(codeFor(radius, offset));
   // Shiki's highlighter loads asynchronously, so codeHtml can't start
   // highlighted. Starting it at '' left the code panel visibly blank
   // (just the "src/main.rs" title bar, nothing under it) until the
   // highlighter finished loading — seed it with plain, unhighlighted
   // text instead so there's always real code on screen.
   let codeHtml = $state(plainCodeHtml(codeFor(400, 200)));
-  let copyCode = $derived(codeFor(radius, offset).replace(/\n/g, '\x7f'));
 
   let iframeEl = $state(null);
   let highlighter;
@@ -26,21 +26,6 @@
   // valid literal as-is.
   function formatFloat(n) {
     return Number.isInteger(n) ? `${n}.0` : `${n}`;
-  }
-
-  function escapeHtml(s) {
-    return s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
-  }
-
-  // Same ec-line/code DOM shape as ecShapeTransformer below, but without
-  // syntax colors — cheap to compute synchronously, unlike the real
-  // highlighter.
-  function plainCodeHtml(code) {
-    const lines = code.replace(/\n$/, '').split('\n');
-    const body = lines
-      .map((line) => `<div class="ec-line"><div class="code">${line.length ? escapeHtml(line) : '\n'}</div></div>`)
-      .join('');
-    return `<pre data-language="rust"><code>${body}</code></pre>`;
   }
 
   function codeFor(radius, offset) {
@@ -63,45 +48,9 @@ async fn main() {
 `;
   }
 
-  // Same shaping as CoordinatesDemo's live snippet — matches Expressive
-  // Code's DOM/CSS exactly instead of a hand-rolled lookalike.
-  const ecShapeTransformer = {
-    pre(node) {
-      node.properties = { 'data-language': 'rust' };
-    },
-    code(node) {
-      node.properties = {};
-    },
-    line(node) {
-      const children = node.children.length > 0 ? node.children : [{ type: 'text', value: '\n' }];
-      return {
-        type: 'element',
-        tagName: 'div',
-        properties: { class: 'ec-line' },
-        children: [
-          {
-            type: 'element',
-            tagName: 'div',
-            properties: { class: 'code' },
-            children,
-          },
-        ],
-      };
-    },
-    postprocess(html) {
-      return html.replace(/\n(?=<div class="ec-line")/g, '');
-    },
-  };
-
   function renderCode() {
     if (!highlighter) return;
-    codeHtml = highlighter.codeToHtml(codeFor(radius, offset), {
-      lang: 'rust',
-      themes: { '0': 'night-owl', '1': 'night-owl-light' },
-      defaultColor: false,
-      cssVariablePrefix: '--',
-      transformers: [ecShapeTransformer],
-    });
+    codeHtml = highlightRust(highlighter, code);
   }
 
   function applyPosition() {
@@ -138,11 +87,7 @@ async fn main() {
   $effect(() => {
     let cancelled = false;
 
-    createHighlighterCore({
-      themes: [import('@shikijs/themes/night-owl'), import('@shikijs/themes/night-owl-light')],
-      langs: [import('@shikijs/langs/rust')],
-      engine: createJavaScriptRegexEngine(),
-    }).then((h) => {
+    loadRustHighlighter().then((h) => {
       if (cancelled) return;
       highlighter = h;
       renderCode();
@@ -179,16 +124,7 @@ async fn main() {
     <NumberField label="offset" bind:value={offset} step="10" />
   </div>
 
-  <div class="expressive-code">
-    <figure class="frame has-title not-content">
-      <figcaption class="header"><span class="title">src/main.rs</span></figcaption>
-      {@html codeHtml}
-      <div class="copy">
-        <div aria-live="polite"></div>
-        <button title="Копировать" data-copied="Скопировано!" data-code={copyCode}><div></div></button>
-      </div>
-    </figure>
-  </div>
+  <CodePanel html={codeHtml} {code} />
 </div>
 
 <style>
@@ -205,9 +141,5 @@ async fn main() {
     align-items: center;
     gap: 1.5rem;
     margin: 0;
-  }
-
-  .expressive-code {
-    margin-top: 0.75rem;
   }
 </style>
