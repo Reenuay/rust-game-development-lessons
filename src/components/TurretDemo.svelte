@@ -26,6 +26,12 @@
     return markedCode([
       `use macroquad::prelude::*;
 
+// Скорость одна и та же на каждом кадре, поэтому это константа
+// (как в «Константах»), а не переменная внутри loop.
+const SPEED: f32 = `,
+      { field: 'speed', value: formatFloat(speed) },
+      `;
+
 #[macroquad::main("Турель стреляет")]
 async fn main() {
     // Направление глазика по умолчанию — ещё до первого движения мыши.
@@ -41,10 +47,6 @@ async fn main() {
 
     loop {
         clear_background(BLACK);
-
-        let speed = `,
-      { field: 'speed', value: formatFloat(speed) },
-      `;
 
         // Турель стоит в центре экрана.
         let center_x = screen_width() / 2.0;
@@ -80,8 +82,8 @@ async fn main() {
 
         // Пуля летит своим зафиксированным направлением, не подстраиваясь
         // под курсор — в отличие от «Погони за мышью».
-        bullet_x += bullet_direction_x * speed;
-        bullet_y += bullet_direction_y * speed;
+        bullet_x += bullet_direction_x * SPEED;
+        bullet_y += bullet_direction_y * SPEED;
 
         // Тело турели.
         draw_circle(center_x, center_y, 40.0, BLUE);
