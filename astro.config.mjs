@@ -25,16 +25,8 @@ export default defineConfig({
           items: [{ autogenerate: { directory: 'lessons/setup' } }],
         },
         {
-          label: 'Базовый уровень',
+          label: 'Уроки',
           items: [{ autogenerate: { directory: 'lessons/basic' } }],
-        },
-        {
-          label: 'Средний уровень',
-          items: [{ autogenerate: { directory: 'lessons/medium' } }],
-        },
-        {
-          label: 'Сложный уровень',
-          items: [{ autogenerate: { directory: 'lessons/hard' } }],
         },
       ],
     }),
