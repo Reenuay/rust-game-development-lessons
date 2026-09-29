@@ -115,8 +115,6 @@ async fn main() {
       min="0"
       max="100"
       step="1"
-      onmouseenter={() => (highlightField = 'x')}
-      onmouseleave={() => (highlightField = null)}
       onfocus={() => (highlightField = 'x')}
       onblur={() => (highlightField = null)}
     />
@@ -126,8 +124,6 @@ async fn main() {
       min="0"
       max="100"
       step="1"
-      onmouseenter={() => (highlightField = 'y')}
-      onmouseleave={() => (highlightField = null)}
       onfocus={() => (highlightField = 'y')}
       onblur={() => (highlightField = null)}
     />

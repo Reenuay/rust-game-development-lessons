@@ -114,8 +114,6 @@ async fn main() {
       label="x"
       bind:value={x}
       step="10"
-      onmouseenter={() => (highlightField = 'x')}
-      onmouseleave={() => (highlightField = null)}
       onfocus={() => (highlightField = 'x')}
       onblur={() => (highlightField = null)}
     />
@@ -123,8 +121,6 @@ async fn main() {
       label="y"
       bind:value={y}
       step="10"
-      onmouseenter={() => (highlightField = 'y')}
-      onmouseleave={() => (highlightField = null)}
       onfocus={() => (highlightField = 'y')}
       onblur={() => (highlightField = null)}
     />

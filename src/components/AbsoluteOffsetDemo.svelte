@@ -134,8 +134,6 @@ async fn main() {
       min="50"
       max="900"
       step="10"
-      onmouseenter={() => (highlightField = 'radius')}
-      onmouseleave={() => (highlightField = null)}
       onfocus={() => (highlightField = 'radius')}
       onblur={() => (highlightField = null)}
     />
@@ -143,8 +141,6 @@ async fn main() {
       label="offset"
       bind:value={offset}
       step="10"
-      onmouseenter={() => (highlightField = 'offset')}
-      onmouseleave={() => (highlightField = null)}
       onfocus={() => (highlightField = 'offset')}
       onblur={() => (highlightField = null)}
     />

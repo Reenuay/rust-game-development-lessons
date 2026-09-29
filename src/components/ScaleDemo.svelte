@@ -121,8 +121,6 @@
       min="1"
       max="50"
       step="1"
-      onmouseenter={() => (highlightN = true)}
-      onmouseleave={() => (highlightN = false)}
       onfocus={() => (highlightN = true)}
       onblur={() => (highlightN = false)}
     />
@@ -132,8 +130,6 @@
       min="0"
       max="1"
       step="0.01"
-      onmouseenter={() => (highlightP = true)}
-      onmouseleave={() => (highlightP = false)}
       onfocus={() => (highlightP = true)}
       onblur={() => (highlightP = false)}
     />

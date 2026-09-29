@@ -133,8 +133,6 @@ async fn main() {
       min="50"
       max="900"
       step="10"
-      onmouseenter={() => (highlightField = 'radius')}
-      onmouseleave={() => (highlightField = null)}
       onfocus={() => (highlightField = 'radius')}
       onblur={() => (highlightField = null)}
     />
@@ -144,8 +142,6 @@ async fn main() {
       min="0"
       max="1"
       step="0.01"
-      onmouseenter={() => (highlightField = 'percent')}
-      onmouseleave={() => (highlightField = null)}
       onfocus={() => (highlightField = 'percent')}
       onblur={() => (highlightField = null)}
     />
