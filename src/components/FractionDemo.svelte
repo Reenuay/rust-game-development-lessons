@@ -214,7 +214,12 @@ async fn main() {
     width: 5.5rem;
     height: 1.75rem;
     padding: 0 0.5rem;
-    border: 1px solid var(--sl-color-hairline);
+    /* Plain hairline borders on the inputs were too subtle to notice
+       against the page — a friend of the site owner's couldn't spot
+       them at a glance. The theme's own accent blue reads as an
+       obvious "this is interactive" cue without introducing a new
+       color. */
+    border: 1.5px solid var(--sl-color-accent);
     border-radius: 0.25rem;
     background: var(--sl-color-bg);
     color: var(--sl-color-text);
