@@ -83,12 +83,16 @@ async fn main() {
     ready = true;
   }
 
+  // The <input min max> attributes only style the spinner buttons and
+  // mark the field :invalid — they don't stop someone from typing 5000
+  // or -50 directly. Clamp for real here instead, same as the
+  // percent/fraction demos do for their own bounded fields.
+  function clampRadius(value) {
+    return Math.min(900, Math.max(50, value));
+  }
+
   $effect(() => {
-    // applyRadius() bails out before touching `radius` until the WASM
-    // exports are ready, so reading it directly here keeps Svelte
-    // tracking it from the very first run (same trap documented on
-    // the absolute-coordinates demo).
-    void radius;
+    radius = clampRadius(radius);
     applyRadius();
     renderCode();
   });
@@ -128,7 +132,7 @@ async fn main() {
 
   <div class="controls" style={`max-width: ${width}px;`}>
     <NumberField
-      label="радиус"
+      label="radius"
       bind:value={radius}
       min="50"
       max="900"
