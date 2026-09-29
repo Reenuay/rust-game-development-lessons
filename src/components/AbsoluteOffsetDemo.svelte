@@ -36,11 +36,11 @@
 
 #[macroquad::main("Абсолютные координаты")]
 async fn main() {
+    let center_x = screen_width() / 2.0;
+    let center_y = screen_height() / 2.0;
+
     loop {
         clear_background(BLACK);
-
-        let center_x = screen_width() / 2.0;
-        let center_y = screen_height() / 2.0;
 
         draw_circle(center_x, center_y, `,
       { field: 'radius', value: formatFloat(radius) },
