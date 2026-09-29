@@ -52,10 +52,6 @@ fn direction(from_x: f32, from_y: f32, to_x: f32, to_y: f32) -> (f32, f32) {
 
 #[macroquad::main("Свои функции")]
 async fn main() {
-    // Направление глазика по умолчанию — ещё до первого движения мыши.
-    let mut direction_x = 1.0;
-    let mut direction_y = 0.0;
-
     // Пуля стоит далеко за пределами экрана, пока не было ни одного
     // клика, — там её просто не видно.
     let mut bullet_x = -1000.0;
@@ -73,12 +69,8 @@ async fn main() {
         // Координаты курсора.
         let (mouse_x, mouse_y) = mouse_position();
 
-        // Курсор не в центре — обновляем, куда смотрит турель.
-        let offset_x = mouse_x - center_x;
-        let offset_y = mouse_y - center_y;
-        if offset_x * offset_x + offset_y * offset_y > 0.0 {
-            (direction_x, direction_y) = direction(center_x, center_y, mouse_x, mouse_y);
-        }
+        // Куда смотрит турель — направление от центра к курсору.
+        let (direction_x, direction_y) = direction(center_x, center_y, mouse_x, mouse_y);
 
         // Глазик — точка плюс вектор (как в «Точке плюс векторе»):
         // центр турели плюс направление, растянутое на 25 пикселей.
