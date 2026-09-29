@@ -2,19 +2,21 @@
   import WasmCanvas from './WasmCanvas.svelte';
   import NumberField from './NumberField.svelte';
   import CodePanel from './CodePanel.svelte';
-  import { loadRustHighlighter, highlightRust, plainCodeHtml } from '../lib/rustHighlight.js';
+  import { loadRustHighlighter, highlightRust, plainCodeHtml, markedCode } from '../lib/rustHighlight.js';
 
   let { name, width = 720, height = 540 } = $props();
 
   let xFraction = $state(0.5);
   let yFraction = $state(0.5);
-  let code = $derived(codeFor(xFraction, yFraction));
+  let highlightField = $state(null);
+  let built = $derived(codeFor(xFraction, yFraction));
+  let code = $derived(built.code);
   // Shiki's highlighter loads asynchronously, so codeHtml can't start
   // highlighted. Starting it at '' left the code panel visibly blank
   // (just the "src/main.rs" title bar, nothing under it) until the
   // highlighter finished loading — seed it with plain, unhighlighted
   // text instead so there's always real code on screen.
-  let codeHtml = $state(plainCodeHtml(codeFor(0.5, 0.5)));
+  let codeHtml = $state(plainCodeHtml(codeFor(0.5, 0.5).code));
 
   let iframeEl = $state(null);
   let highlighter;
@@ -29,27 +31,33 @@
   }
 
   function codeFor(xFraction, yFraction) {
-    return `use macroquad::prelude::*;
+    return markedCode([
+      `use macroquad::prelude::*;
 
 #[macroquad::main("Доля от 0 до 1")]
 async fn main() {
     loop {
         clear_background(BLACK);
 
-        let x = screen_width() * ${formatFloat(xFraction)};
-        let y = screen_height() * ${formatFloat(yFraction)};
+        let x = screen_width() * `,
+      { field: 'x', value: formatFloat(xFraction) },
+      `;
+        let y = screen_height() * `,
+      { field: 'y', value: formatFloat(yFraction) },
+      `;
 
         draw_circle(x, y, 80.0, YELLOW);
 
         next_frame().await;
     }
 }
-`;
+`,
+    ]);
   }
 
   function renderCode() {
     if (!highlighter) return;
-    codeHtml = highlightRust(highlighter, code);
+    codeHtml = highlightRust(highlighter, code, built.marks);
   }
 
   function applyPosition() {
@@ -107,11 +115,31 @@ async fn main() {
   </p>
 
   <div class="controls" style={`max-width: ${width}px;`}>
-    <NumberField label="x" bind:value={xFraction} min="0" max="1" step="0.1" />
-    <NumberField label="y" bind:value={yFraction} min="0" max="1" step="0.1" />
+    <NumberField
+      label="x"
+      bind:value={xFraction}
+      min="0"
+      max="1"
+      step="0.1"
+      onmouseenter={() => (highlightField = 'x')}
+      onmouseleave={() => (highlightField = null)}
+      onfocus={() => (highlightField = 'x')}
+      onblur={() => (highlightField = null)}
+    />
+    <NumberField
+      label="y"
+      bind:value={yFraction}
+      min="0"
+      max="1"
+      step="0.1"
+      onmouseenter={() => (highlightField = 'y')}
+      onmouseleave={() => (highlightField = null)}
+      onfocus={() => (highlightField = 'y')}
+      onblur={() => (highlightField = null)}
+    />
   </div>
 
-  <CodePanel html={codeHtml} {code} />
+  <CodePanel html={codeHtml} {code} {highlightField} />
 </div>
 
 <style>

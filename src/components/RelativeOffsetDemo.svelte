@@ -2,19 +2,21 @@
   import WasmCanvas from './WasmCanvas.svelte';
   import NumberField from './NumberField.svelte';
   import CodePanel from './CodePanel.svelte';
-  import { loadRustHighlighter, highlightRust, plainCodeHtml } from '../lib/rustHighlight.js';
+  import { loadRustHighlighter, highlightRust, plainCodeHtml, markedCode } from '../lib/rustHighlight.js';
 
   let { name, width = 720, height = 540 } = $props();
 
   let radius = $state(400);
   let percent = $state(0.5);
-  let code = $derived(codeFor(radius, percent));
+  let highlightField = $state(null);
+  let built = $derived(codeFor(radius, percent));
+  let code = $derived(built.code);
   // Shiki's highlighter loads asynchronously, so codeHtml can't start
   // highlighted. Starting it at '' left the code panel visibly blank
   // (just the "src/main.rs" title bar, nothing under it) until the
   // highlighter finished loading — seed it with plain, unhighlighted
   // text instead so there's always real code on screen.
-  let codeHtml = $state(plainCodeHtml(codeFor(400, 0.5)));
+  let codeHtml = $state(plainCodeHtml(codeFor(400, 0.5).code));
 
   let iframeEl = $state(null);
   let highlighter;
@@ -28,8 +30,13 @@
     return Number.isInteger(n) ? `${n}.0` : `${n}`;
   }
 
+  // `radius` appears twice below (the big circle's own radius, and
+  // again inside the offset math) — markedCode records every marked
+  // occurrence per field, so hovering R pulses both.
   function codeFor(radius, percent) {
-    return `use macroquad::prelude::*;
+    const r = formatFloat(radius);
+    return markedCode([
+      `use macroquad::prelude::*;
 
 #[macroquad::main("Относительные координаты")]
 async fn main() {
@@ -39,18 +46,25 @@ async fn main() {
         let center_x = screen_width() / 2.0;
         let center_y = screen_height() / 2.0;
 
-        draw_circle(center_x, center_y, ${formatFloat(radius)}, DARKBLUE);
-        draw_circle(center_x + ${formatFloat(radius)} * ${formatFloat(percent)}, center_y, 40.0, YELLOW);
+        draw_circle(center_x, center_y, `,
+      { field: 'radius', value: r },
+      `, DARKBLUE);
+        draw_circle(center_x + `,
+      { field: 'radius', value: r },
+      ` * `,
+      { field: 'percent', value: formatFloat(percent) },
+      `, center_y, 40.0, YELLOW);
 
         next_frame().await;
     }
 }
-`;
+`,
+    ]);
   }
 
   function renderCode() {
     if (!highlighter) return;
-    codeHtml = highlightRust(highlighter, code);
+    codeHtml = highlightRust(highlighter, code, built.marks);
   }
 
   function applyPosition() {
@@ -113,11 +127,31 @@ async fn main() {
   </p>
 
   <div class="controls" style={`max-width: ${width}px;`}>
-    <NumberField label="R" bind:value={radius} min="50" max="900" step="10" />
-    <NumberField label="P" bind:value={percent} min="0" max="1" step="0.01" />
+    <NumberField
+      label="R"
+      bind:value={radius}
+      min="50"
+      max="900"
+      step="10"
+      onmouseenter={() => (highlightField = 'radius')}
+      onmouseleave={() => (highlightField = null)}
+      onfocus={() => (highlightField = 'radius')}
+      onblur={() => (highlightField = null)}
+    />
+    <NumberField
+      label="P"
+      bind:value={percent}
+      min="0"
+      max="1"
+      step="0.01"
+      onmouseenter={() => (highlightField = 'percent')}
+      onmouseleave={() => (highlightField = null)}
+      onfocus={() => (highlightField = 'percent')}
+      onblur={() => (highlightField = null)}
+    />
   </div>
 
-  <CodePanel html={codeHtml} {code} />
+  <CodePanel html={codeHtml} {code} {highlightField} />
 </div>
 
 <style>

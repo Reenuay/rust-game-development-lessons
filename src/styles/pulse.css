@@ -1,0 +1,26 @@
+/* Shared "this number is connected to that field" cue — hovering or
+   focusing an input pulses (scale + colored glow, breathing loop) the
+   matching value wherever it's shown, whether that's an SVG <text>
+   (ScaleDemo) or a highlighted code token (CodePanel). One definition
+   so every demo that needs it reuses the exact same look instead of
+   each carrying its own copy of these rules. */
+@keyframes demo-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0 currentColor);
+  }
+  50% {
+    transform: scale(1.18);
+    filter: drop-shadow(0 0 5px currentColor);
+  }
+}
+
+.demo-pulse {
+  /* Needed for SVG <text>: without it, scale() transforms from the
+     SVG viewport's origin (0,0) instead of the element's own center.
+     Harmless (ignored) on ordinary HTML elements. */
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: demo-pulse 1.2s ease-in-out infinite;
+}

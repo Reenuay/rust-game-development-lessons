@@ -96,7 +96,7 @@
       x={clampLabelX(topX(p))}
       y={PERCENT_LABEL_TOP_Y}
       class="percent-label"
-      class:pulse-percent={highlightP}
+      class:demo-pulse={highlightP}
     >{formatLabel(p)}</text>
     <text x={clampLabelX(bottomX(p))} y={PERCENT_LABEL_BOTTOM_Y} class="percent-label">{formatLabel(p * n)}</text>
 
@@ -110,7 +110,7 @@
       x={PAD + DRAW_WIDTH}
       y={TICK_BOTTOM_Y}
       class="tick-label"
-      class:pulse-tick={highlightN}
+      class:demo-pulse={highlightN}
     >{n}</text>
   </svg>
 
@@ -170,6 +170,10 @@
 
   .tick-label {
     fill: var(--sl-color-text);
+    /* .demo-pulse's glow (src/styles/pulse.css) reads the CSS `color`
+       property via currentColor — SVG's `fill` doesn't set it, so set
+       both to the same value or the glow would default to black. */
+    color: var(--sl-color-text);
     font-size: 15px;
     font-family: var(--__sl-font-mono, ui-monospace, monospace);
     text-anchor: middle;
@@ -177,53 +181,11 @@
 
   .percent-label {
     fill: #ef4444;
+    color: #ef4444;
     font-size: 16px;
     font-weight: 600;
     font-family: var(--__sl-font-mono, ui-monospace, monospace);
     text-anchor: middle;
-  }
-
-  /* Hovering/focusing a field "pulses" its number in the SVG — a
-     gentle scale + glow breathing loop, not a blink, so it reads as
-     "this one" rather than as an alert. Needs transform-box: fill-box
-     or an SVG <text> scales from the viewport origin (0,0) instead of
-     its own center. */
-  .pulse-tick,
-  .pulse-percent {
-    transform-box: fill-box;
-    transform-origin: center;
-  }
-
-  .pulse-tick {
-    animation: pulse-tick 1.2s ease-in-out infinite;
-  }
-
-  .pulse-percent {
-    animation: pulse-percent 1.2s ease-in-out infinite;
-  }
-
-  @keyframes pulse-tick {
-    0%,
-    100% {
-      transform: scale(1);
-      filter: drop-shadow(0 0 0 var(--sl-color-accent));
-    }
-    50% {
-      transform: scale(1.18);
-      filter: drop-shadow(0 0 5px var(--sl-color-accent));
-    }
-  }
-
-  @keyframes pulse-percent {
-    0%,
-    100% {
-      transform: scale(1);
-      filter: drop-shadow(0 0 0 #ef4444);
-    }
-    50% {
-      transform: scale(1.18);
-      filter: drop-shadow(0 0 5px #ef4444);
-    }
   }
 
   .controls {

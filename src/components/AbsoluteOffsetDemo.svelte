@@ -2,19 +2,21 @@
   import WasmCanvas from './WasmCanvas.svelte';
   import NumberField from './NumberField.svelte';
   import CodePanel from './CodePanel.svelte';
-  import { loadRustHighlighter, highlightRust, plainCodeHtml } from '../lib/rustHighlight.js';
+  import { loadRustHighlighter, highlightRust, plainCodeHtml, markedCode } from '../lib/rustHighlight.js';
 
   let { name, width = 720, height = 540 } = $props();
 
   let radius = $state(400);
   let offset = $state(200);
-  let code = $derived(codeFor(radius, offset));
+  let highlightField = $state(null);
+  let built = $derived(codeFor(radius, offset));
+  let code = $derived(built.code);
   // Shiki's highlighter loads asynchronously, so codeHtml can't start
   // highlighted. Starting it at '' left the code panel visibly blank
   // (just the "src/main.rs" title bar, nothing under it) until the
   // highlighter finished loading — seed it with plain, unhighlighted
   // text instead so there's always real code on screen.
-  let codeHtml = $state(plainCodeHtml(codeFor(400, 200)));
+  let codeHtml = $state(plainCodeHtml(codeFor(400, 200).code));
 
   let iframeEl = $state(null);
   let highlighter;
@@ -29,7 +31,8 @@
   }
 
   function codeFor(radius, offset) {
-    return `use macroquad::prelude::*;
+    return markedCode([
+      `use macroquad::prelude::*;
 
 #[macroquad::main("Абсолютные координаты")]
 async fn main() {
@@ -39,18 +42,23 @@ async fn main() {
         let center_x = screen_width() / 2.0;
         let center_y = screen_height() / 2.0;
 
-        draw_circle(center_x, center_y, ${formatFloat(radius)}, DARKBLUE);
-        draw_circle(center_x + ${formatFloat(offset)}, center_y, 40.0, YELLOW);
+        draw_circle(center_x, center_y, `,
+      { field: 'radius', value: formatFloat(radius) },
+      `, DARKBLUE);
+        draw_circle(center_x + `,
+      { field: 'offset', value: formatFloat(offset) },
+      `, center_y, 40.0, YELLOW);
 
         next_frame().await;
     }
 }
-`;
+`,
+    ]);
   }
 
   function renderCode() {
     if (!highlighter) return;
-    codeHtml = highlightRust(highlighter, code);
+    codeHtml = highlightRust(highlighter, code, built.marks);
   }
 
   function applyPosition() {
@@ -120,11 +128,29 @@ async fn main() {
   </p>
 
   <div class="controls" style={`max-width: ${width}px;`}>
-    <NumberField label="R" bind:value={radius} min="50" max="900" step="10" />
-    <NumberField label="offset" bind:value={offset} step="10" />
+    <NumberField
+      label="R"
+      bind:value={radius}
+      min="50"
+      max="900"
+      step="10"
+      onmouseenter={() => (highlightField = 'radius')}
+      onmouseleave={() => (highlightField = null)}
+      onfocus={() => (highlightField = 'radius')}
+      onblur={() => (highlightField = null)}
+    />
+    <NumberField
+      label="offset"
+      bind:value={offset}
+      step="10"
+      onmouseenter={() => (highlightField = 'offset')}
+      onmouseleave={() => (highlightField = null)}
+      onfocus={() => (highlightField = 'offset')}
+      onblur={() => (highlightField = null)}
+    />
   </div>
 
-  <CodePanel html={codeHtml} {code} />
+  <CodePanel html={codeHtml} {code} {highlightField} />
 </div>
 
 <style>

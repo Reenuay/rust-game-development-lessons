@@ -2,46 +2,54 @@
   import WasmCanvas from './WasmCanvas.svelte';
   import NumberField from './NumberField.svelte';
   import CodePanel from './CodePanel.svelte';
-  import { loadRustHighlighter, highlightRust, plainCodeHtml } from '../lib/rustHighlight.js';
+  import { loadRustHighlighter, highlightRust, plainCodeHtml, markedCode } from '../lib/rustHighlight.js';
 
   let { name, width = 720, height = 540 } = $props();
 
   let xPercent = $state(50);
   let yPercent = $state(50);
-  let code = $derived(codeFor(xPercent, yPercent));
+  let highlightField = $state(null);
+  let built = $derived(codeFor(xPercent, yPercent));
+  let code = $derived(built.code);
   // Shiki's highlighter loads asynchronously, so codeHtml can't start
   // highlighted. Starting it at '' left the code panel visibly blank
   // (just the "src/main.rs" title bar, nothing under it) until the
   // highlighter finished loading — seed it with plain, unhighlighted
   // text instead so there's always real code on screen.
-  let codeHtml = $state(plainCodeHtml(codeFor(50, 50)));
+  let codeHtml = $state(plainCodeHtml(codeFor(50, 50).code));
 
   let iframeEl = $state(null);
   let highlighter;
   let ready = false;
 
   function codeFor(xPercent, yPercent) {
-    return `use macroquad::prelude::*;
+    return markedCode([
+      `use macroquad::prelude::*;
 
 #[macroquad::main("Проценты")]
 async fn main() {
     loop {
         clear_background(BLACK);
 
-        let x = screen_width() * ${xPercent}.0 / 100.0;
-        let y = screen_height() * ${yPercent}.0 / 100.0;
+        let x = screen_width() * `,
+      { field: 'x', value: `${xPercent}.0` },
+      ` / 100.0;
+        let y = screen_height() * `,
+      { field: 'y', value: `${yPercent}.0` },
+      ` / 100.0;
 
         draw_circle(x, y, 80.0, YELLOW);
 
         next_frame().await;
     }
 }
-`;
+`,
+    ]);
   }
 
   function renderCode() {
     if (!highlighter) return;
-    codeHtml = highlightRust(highlighter, code);
+    codeHtml = highlightRust(highlighter, code, built.marks);
   }
 
   function applyPosition() {
@@ -101,11 +109,31 @@ async fn main() {
   </p>
 
   <div class="controls" style={`max-width: ${width}px;`}>
-    <NumberField label="x%" bind:value={xPercent} min="0" max="100" step="1" />
-    <NumberField label="y%" bind:value={yPercent} min="0" max="100" step="1" />
+    <NumberField
+      label="x%"
+      bind:value={xPercent}
+      min="0"
+      max="100"
+      step="1"
+      onmouseenter={() => (highlightField = 'x')}
+      onmouseleave={() => (highlightField = null)}
+      onfocus={() => (highlightField = 'x')}
+      onblur={() => (highlightField = null)}
+    />
+    <NumberField
+      label="y%"
+      bind:value={yPercent}
+      min="0"
+      max="100"
+      step="1"
+      onmouseenter={() => (highlightField = 'y')}
+      onmouseleave={() => (highlightField = null)}
+      onfocus={() => (highlightField = 'y')}
+      onblur={() => (highlightField = null)}
+    />
   </div>
 
-  <CodePanel html={codeHtml} {code} />
+  <CodePanel html={codeHtml} {code} {highlightField} />
 </div>
 
 <style>

@@ -2,7 +2,7 @@
   import WasmCanvas from './WasmCanvas.svelte';
   import NumberField from './NumberField.svelte';
   import CodePanel from './CodePanel.svelte';
-  import { loadRustHighlighter, highlightRust, plainCodeHtml } from '../lib/rustHighlight.js';
+  import { loadRustHighlighter, highlightRust, plainCodeHtml, markedCode } from '../lib/rustHighlight.js';
 
   let { name, width = 720, height = 540 } = $props();
 
@@ -16,37 +16,47 @@
 
   let x = $state(Math.round(WORLD_WIDTH / 2));
   let y = $state(Math.round(WORLD_HEIGHT / 2));
-  let code = $derived(codeFor(x, y));
+  // Which field (if any) is hovered/focused right now — highlighted in
+  // the code panel below via valueMarkTransformer's data-field markers.
+  let highlightField = $state(null);
+  let built = $derived(codeFor(x, y));
+  let code = $derived(built.code);
   // Shiki's highlighter loads asynchronously, so codeHtml can't start
   // highlighted. Starting it at '' left the code panel visibly blank
   // (just the "src/main.rs" title bar, nothing under it) until the
   // highlighter finished loading — seed it with plain, unhighlighted
   // text instead so there's always real code on screen.
-  let codeHtml = $state(plainCodeHtml(codeFor(x, y)));
+  let codeHtml = $state(plainCodeHtml(codeFor(x, y).code));
 
   let iframeEl = $state(null);
   let highlighter;
   let ready = false;
 
   function codeFor(x, y) {
-    return `use macroquad::prelude::*;
+    return markedCode([
+      `use macroquad::prelude::*;
 
 #[macroquad::main("Координаты")]
 async fn main() {
     loop {
         clear_background(BLACK);
 
-        draw_circle(${x}.0, ${y}.0, 40.0, YELLOW);
+        draw_circle(`,
+      { field: 'x', value: `${x}.0` },
+      `, `,
+      { field: 'y', value: `${y}.0` },
+      `, 40.0, YELLOW);
 
         next_frame().await;
     }
 }
-`;
+`,
+    ]);
   }
 
   function renderCode() {
     if (!highlighter) return;
-    codeHtml = highlightRust(highlighter, code);
+    codeHtml = highlightRust(highlighter, code, built.marks);
   }
 
   function applyPosition() {
@@ -100,11 +110,27 @@ async fn main() {
   </p>
 
   <div class="controls" style={`max-width: ${width}px;`}>
-    <NumberField label="x" bind:value={x} step="10" />
-    <NumberField label="y" bind:value={y} step="10" />
+    <NumberField
+      label="x"
+      bind:value={x}
+      step="10"
+      onmouseenter={() => (highlightField = 'x')}
+      onmouseleave={() => (highlightField = null)}
+      onfocus={() => (highlightField = 'x')}
+      onblur={() => (highlightField = null)}
+    />
+    <NumberField
+      label="y"
+      bind:value={y}
+      step="10"
+      onmouseenter={() => (highlightField = 'y')}
+      onmouseleave={() => (highlightField = null)}
+      onfocus={() => (highlightField = 'y')}
+      onblur={() => (highlightField = null)}
+    />
   </div>
 
-  <CodePanel html={codeHtml} {code} />
+  <CodePanel html={codeHtml} {code} {highlightField} />
 </div>
 
 <style>
