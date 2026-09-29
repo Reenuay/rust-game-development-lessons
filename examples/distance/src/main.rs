@@ -5,15 +5,21 @@ async fn main() {
     loop {
         clear_background(BLACK);
 
+        // Центр экрана.
         let center_x = screen_width() / 2.0;
         let center_y = screen_height() / 2.0;
 
+        // Координаты курсора.
         let (mouse_x, mouse_y) = mouse_position();
 
-        // Расстояние по x и по y отдельно, потом в одну формулу.
+        // Разница по x между курсором и центром.
         let dx = mouse_x - center_x;
+        // Разница по y между курсором и центром.
         let dy = mouse_y - center_y;
-        let distance = (dx * dx + dy * dy).sqrt();
+        // Квадрат расстояния — сумма квадратов разниц по x и по y.
+        let squared_distance = dx * dx + dy * dy;
+        // Само расстояние — квадратный корень из squared_distance.
+        let distance = squared_distance.sqrt();
 
         // draw_circle_lines — то же самое, что draw_circle, только
         // рисует контур, а не сплошную заливку.
