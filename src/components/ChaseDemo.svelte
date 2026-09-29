@@ -26,6 +26,12 @@
     return markedCode([
       `use macroquad::prelude::*;
 
+// Скорость одна и та же на каждом кадре, поэтому это константа
+// (как в «Константах»), а не переменная внутри loop.
+const SPEED: f32 = `,
+      { field: 'speed', value: formatFloat(speed) },
+      `;
+
 #[macroquad::main("Погоня за мышью")]
 async fn main() {
     // Кружок стартует в центре экрана. mut и вне loop — позиция
@@ -35,10 +41,6 @@ async fn main() {
 
     loop {
         clear_background(BLACK);
-
-        let speed = `,
-      { field: 'speed', value: formatFloat(speed) },
-      `;
 
         // Координаты курсора.
         let (mouse_x, mouse_y) = mouse_position();
@@ -55,8 +57,8 @@ async fn main() {
             let direction_y = dy / distance;
 
             // Точка + вектор: шаг фиксированной длины в эту сторону.
-            x += direction_x * speed;
-            y += direction_y * speed;
+            x += direction_x * SPEED;
+            y += direction_y * SPEED;
         }
 
         draw_circle(x, y, 30.0, YELLOW);
