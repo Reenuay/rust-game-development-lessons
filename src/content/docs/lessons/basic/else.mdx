@@ -28,11 +28,14 @@ async fn main() {
         clear_background(BLACK);
 
         if is_mouse_button_down(MouseButton::Left) {
+            // Кнопка нажата — рисуем жёлтый кружок.
             draw_circle(center_x, center_y - 150.0, 80.0, YELLOW);
         } else {
+            // Не нажата — рисуем красный.
             draw_circle(center_x, center_y - 150.0, 80.0, RED);
         }
 
+        // А этот рисуем всегда, вне зависимости от кнопки.
         draw_circle(center_x, center_y + 150.0, 80.0, BLUE);
 
         next_frame().await;
