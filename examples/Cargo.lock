@@ -348,6 +348,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "shift"
+version = "0.1.0"
+dependencies = [
+ "macroquad",
+]
+
+[[package]]
 name = "simd-adler32"
 version = "0.3.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
