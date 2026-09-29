@@ -5,6 +5,7 @@ async fn main() {
     loop {
         clear_background(BLACK);
 
+        // Ширина и высота экрана.
         let w = screen_width();
         let h = screen_height();
 

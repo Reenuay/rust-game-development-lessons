@@ -31,9 +31,11 @@ async fn main() {
     loop {
         clear_background(BLACK);
 
+        // Процент от ширины экрана.
         let x = screen_width() * `,
       { field: 'x', value: `${xPercent}.0` },
       ` / 100.0;
+        // Процент от высоты экрана.
         let y = screen_height() * `,
       { field: 'y', value: `${yPercent}.0` },
       ` / 100.0;

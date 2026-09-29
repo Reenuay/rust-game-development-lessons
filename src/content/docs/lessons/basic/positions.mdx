@@ -20,7 +20,9 @@ import WasmCanvas from '../../../../components/WasmCanvas.svelte';
 ```rust
 let w = screen_width();
 
+// Треть ширины от левого края.
 let one_third = w / 3.0;
+// Две трети ширины от левого края.
 let two_thirds = w / 3.0 * 2.0;
 ```
 
@@ -40,6 +42,7 @@ async fn main() {
     loop {
         clear_background(BLACK);
 
+        // Ширина и высота экрана.
         let w = screen_width();
         let h = screen_height();
 

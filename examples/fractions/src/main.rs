@@ -25,7 +25,9 @@ async fn main() {
         let x_fraction = f32::from_bits(X_FRACTION.load(Ordering::Relaxed));
         let y_fraction = f32::from_bits(Y_FRACTION.load(Ordering::Relaxed));
 
+        // Доля от ширины экрана.
         let x = screen_width() * x_fraction;
+        // Доля от высоты экрана.
         let y = screen_height() * y_fraction;
 
         draw_circle(x, y, 80.0, YELLOW);

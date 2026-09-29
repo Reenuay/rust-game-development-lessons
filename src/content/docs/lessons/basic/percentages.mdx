@@ -20,7 +20,9 @@ import PercentDemo from '../../../../components/PercentDemo.svelte';
 на 100 (получаем долю от 0.0 до 1.0) и умножаем на ширину экрана:
 
 ```rust
+// Процент от 0 до 100.
 let x_percent = 60.0;
+// Переводим в пиксели: делим на 100, умножаем на ширину экрана.
 let x = screen_width() * x_percent / 100.0;
 ```
 

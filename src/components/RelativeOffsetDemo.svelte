@@ -40,15 +40,18 @@
 
 #[macroquad::main("Относительные координаты")]
 async fn main() {
+    // Центр экрана — считаем один раз, до loop.
     let center_x = screen_width() / 2.0;
     let center_y = screen_height() / 2.0;
 
     loop {
         clear_background(BLACK);
 
+        // Большой круг — по центру, радиусом R.
         draw_circle(center_x, center_y, `,
       { field: 'radius', value: r },
       `, DARKBLUE);
+        // Жёлтый кружок — смещён на долю P от радиуса R.
         draw_circle(center_x + `,
       { field: 'radius', value: r },
       ` * `,

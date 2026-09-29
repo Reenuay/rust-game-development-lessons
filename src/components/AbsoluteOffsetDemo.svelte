@@ -36,15 +36,18 @@
 
 #[macroquad::main("Абсолютные координаты")]
 async fn main() {
+    // Центр экрана — считаем один раз, до loop.
     let center_x = screen_width() / 2.0;
     let center_y = screen_height() / 2.0;
 
     loop {
         clear_background(BLACK);
 
+        // Большой круг — по центру, радиусом R.
         draw_circle(center_x, center_y, `,
       { field: 'radius', value: formatFloat(radius) },
       `, DARKBLUE);
+        // Жёлтый кружок — смещён от центра на фиксированное число пикселей.
         draw_circle(center_x + `,
       { field: 'offset', value: formatFloat(offset) },
       `, center_y, 40.0, YELLOW);

@@ -22,6 +22,7 @@ async fn main() {
         let offset_x = f32::from_bits(OFFSET_X.load(Ordering::Relaxed));
         let offset_y = f32::from_bits(OFFSET_Y.load(Ordering::Relaxed));
 
+        // Координаты курсора.
         let (mouse_x, mouse_y) = mouse_position();
 
         // Белая точка — сама позиция курсора, просто ориентир.

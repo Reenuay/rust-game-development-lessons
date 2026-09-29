@@ -39,6 +39,7 @@ async fn main() {
         // x объявлена внутри loop — создаётся заново на каждом кадре.
         let mut x = screen_width() / 2.0;
 
+        // Стрелка вправо зажата — двигаем x.
         if is_key_down(KeyCode::Right) {
             x += 8.0;
         }
@@ -71,6 +72,7 @@ async fn main() {
     loop {
         clear_background(BLACK);
 
+        // Стрелка вправо зажата — двигаем x.
         if is_key_down(KeyCode::Right) {
             x += 8.0;
         }

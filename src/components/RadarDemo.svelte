@@ -42,11 +42,14 @@ async fn main() {
       { field: 'radius', value: formatFloat(radius) },
       `;
 
+        // Центр экрана — здесь же стоит турель.
         let center_x = screen_width() / 2.0;
         let center_y = screen_height() / 2.0;
 
+        // Координаты курсора.
         let (mouse_x, mouse_y) = mouse_position();
 
+        // Расстояние от турели до курсора (как в «Расстоянии»).
         let dx = mouse_x - center_x;
         let dy = mouse_y - center_y;
         let distance = (dx * dx + dy * dy).sqrt();

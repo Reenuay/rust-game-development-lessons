@@ -41,6 +41,7 @@ async fn main() {
     loop {
         clear_background(BLACK);
 
+        // Круг в точке (x, y).
         draw_circle(`,
       { field: 'x', value: `${x}.0` },
       `, `,

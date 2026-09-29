@@ -25,7 +25,9 @@ async fn main() {
         let x_percent = f32::from_bits(X_PERCENT.load(Ordering::Relaxed));
         let y_percent = f32::from_bits(Y_PERCENT.load(Ordering::Relaxed));
 
+        // Процент от ширины экрана.
         let x = screen_width() * x_percent / 100.0;
+        // Процент от высоты экрана.
         let y = screen_height() * y_percent / 100.0;
 
         draw_circle(x, y, 80.0, YELLOW);

@@ -28,7 +28,9 @@ async fn main() {
         let center_x = screen_width() / 2.0;
         let center_y = screen_height() / 2.0;
 
+        // Большой круг — по центру, радиусом R.
         draw_circle(center_x, center_y, radius, DARKBLUE);
+        // Жёлтый кружок — смещён от центра на фиксированное число пикселей.
         draw_circle(center_x + offset, center_y, 40.0, YELLOW);
 
         next_frame().await;

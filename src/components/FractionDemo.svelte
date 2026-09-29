@@ -39,9 +39,11 @@ async fn main() {
     loop {
         clear_background(BLACK);
 
+        // Доля от ширины экрана.
         let x = screen_width() * `,
       { field: 'x', value: formatFloat(xFraction) },
       `;
+        // Доля от высоты экрана.
         let y = screen_height() * `,
       { field: 'y', value: formatFloat(yFraction) },
       `;

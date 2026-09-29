@@ -39,6 +39,7 @@ async fn main() {
     loop {
         clear_background(BLACK);
 
+        // Координаты курсора.
         let (mouse_x, mouse_y) = mouse_position();
 
         // Белая точка — сама позиция курсора, просто ориентир.
