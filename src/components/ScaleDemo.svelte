@@ -96,7 +96,7 @@
       x={clampLabelX(topX(p))}
       y={PERCENT_LABEL_TOP_Y}
       class="percent-label"
-      class:demo-pulse={highlightP}
+      data-pulse={highlightP ? '' : undefined}
     >{formatLabel(p)}</text>
     <text x={clampLabelX(bottomX(p))} y={PERCENT_LABEL_BOTTOM_Y} class="percent-label">{formatLabel(p * n)}</text>
 
@@ -110,7 +110,7 @@
       x={PAD + DRAW_WIDTH}
       y={TICK_BOTTOM_Y}
       class="tick-label"
-      class:demo-pulse={highlightN}
+      data-pulse={highlightN ? '' : undefined}
     >{n}</text>
   </svg>
 
@@ -170,7 +170,7 @@
 
   .tick-label {
     fill: var(--sl-color-text);
-    /* .demo-pulse's glow (src/styles/pulse.css) reads the CSS `color`
+    /* [data-pulse]'s glow (src/styles/pulse.css) reads the CSS `color`
        property via currentColor — SVG's `fill` doesn't set it, so set
        both to the same value or the glow would default to black. */
     color: var(--sl-color-text);

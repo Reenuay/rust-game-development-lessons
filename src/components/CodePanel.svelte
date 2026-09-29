@@ -17,8 +17,13 @@
   // a given input field controls (see valueMarkTransformer in
   // ../lib/rustHighlight.js) — {@html} content is opaque to Svelte, so
   // rather than fight it, just walk the rendered DOM directly and
-  // toggle the shared .demo-pulse class (src/styles/pulse.css) onto
-  // whichever one matches the currently hovered/focused field.
+  // toggle the shared [data-pulse] attribute (src/styles/pulse.css)
+  // onto whichever one matches the currently hovered/focused field.
+  //
+  // An attribute, not a class: Expressive Code's CSS only colors a
+  // token span that has no `class` attribute at all — giving it one
+  // (classList.toggle) would permanently strip its syntax color, even
+  // after the class is removed again (see the comment in pulse.css).
   let bodyEl;
 
   $effect(() => {
@@ -29,7 +34,7 @@
     // a code update wouldn't re-run the highlight toggle.
     void html;
     for (const el of bodyEl.querySelectorAll('[data-field]')) {
-      el.classList.toggle('demo-pulse', el.dataset.field === highlightField);
+      el.toggleAttribute('data-pulse', el.dataset.field === highlightField);
     }
   });
 </script>
