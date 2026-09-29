@@ -5,7 +5,7 @@ sidebar:
   order: 1
 ---
 
-import { Tabs, TabItem } from '@astrojs/starlight/components';
+import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
 
 Rust ставится через официальный установщик `rustup`. Скачать его можно на
 сайте [rustup.rs](https://rustup.rs).
@@ -30,6 +30,25 @@ Rust на Windows использует линковщик (программу, �
 6. Откроется чёрное окно терминала с текстом — нажми `Enter`, чтобы
    согласиться с установкой по умолчанию.
 7. Дождись надписи `Rust is installed now. Great!` и закрой окно.
+
+<Aside type="tip" title="Можно и без Visual Studio">
+
+Есть более лёгкий вариант: вместо линковщика из Visual Studio
+использовать линковщик GNU. Он весит в разы меньше и ставится прямо
+через сам rustup — без установщика с сайта Microsoft.
+
+Пропусти шаги 1–3 выше и сразу поставь Rust (шаги 4–7). Когда он
+установлен, открой терминал и введи две команды:
+
+```sh
+rustup toolchain install stable-x86_64-pc-windows-gnu
+rustup default stable-x86_64-pc-windows-gnu
+```
+
+Это переключит Rust на линковщик GNU, который он скачает и поставит
+сам. Visual Studio после этого не понадобится.
+
+</Aside>
 
 </TabItem>
 <TabItem label="macOS">
@@ -80,7 +99,18 @@ rustc --version
 
 Если при `cargo run` появляется ошибка `linker 'link.exe' not found` —
 значит, Rust уже поставлен, но пропущен шаг с Build Tools выше. Ставить
-Rust заново не нужно: зайди на страницу [Build Tools для Visual Studio](https://visualstudio.microsoft.com/ru/visual-cpp-build-tools/),
-скачай и запусти установщик, поставь галочку на **"Разработка классических
-приложений на C++"** и нажми **"Установить"**. После установки открой
-терминал заново и попробуй `cargo run` ещё раз.
+Rust заново не нужно, есть два варианта:
+
+- **Поставить Build Tools.** Зайди на страницу [Build Tools для Visual Studio](https://visualstudio.microsoft.com/ru/visual-cpp-build-tools/),
+  скачай и запусти установщик, поставь галочку на **"Разработка
+  классических приложений на C++"** и нажми **"Установить"**.
+- **Или переключиться на линковщик GNU** — он весит гораздо меньше и
+  ставится без отдельного установщика. Введи в терминале:
+
+  ```sh
+  rustup toolchain install stable-x86_64-pc-windows-gnu
+  rustup default stable-x86_64-pc-windows-gnu
+  ```
+
+После любого из вариантов открой терминал заново и попробуй `cargo run`
+ещё раз.
