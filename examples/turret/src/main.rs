@@ -1,4 +1,12 @@
 use macroquad::prelude::*;
+use std::sync::atomic::{AtomicU32, Ordering};
+
+static SPEED: AtomicU32 = AtomicU32::new(0);
+
+#[no_mangle]
+pub extern "C" fn set_speed(speed: f32) {
+    SPEED.store(speed.to_bits(), Ordering::Relaxed);
+}
 
 #[macroquad::main("Турель стреляет")]
 async fn main() {
@@ -15,6 +23,8 @@ async fn main() {
 
     loop {
         clear_background(BLACK);
+
+        let speed = f32::from_bits(SPEED.load(Ordering::Relaxed));
 
         // Турель стоит в центре экрана.
         let center_x = screen_width() / 2.0;
@@ -50,8 +60,8 @@ async fn main() {
 
         // Пуля летит своим зафиксированным направлением, не подстраиваясь
         // под курсор — в отличие от «Погони за мышью».
-        bullet_x += bullet_direction_x * 10.0;
-        bullet_y += bullet_direction_y * 10.0;
+        bullet_x += bullet_direction_x * speed;
+        bullet_y += bullet_direction_y * speed;
 
         // Тело турели.
         draw_circle(center_x, center_y, 40.0, BLUE);

@@ -5,7 +5,7 @@ sidebar:
   order: 28
 ---
 
-import WasmCanvas from '../../../../components/WasmCanvas.svelte';
+import TurretDemo from '../../../../components/TurretDemo.svelte';
 
 Давай сделаем неподвижную турель, которая умеет стрелять в сторону
 курсора. Разложим задачу на то, что мы уже умеем:
@@ -26,6 +26,12 @@ import WasmCanvas from '../../../../components/WasmCanvas.svelte';
 глазик постоянно довёрнут на курсор, как бы тот ни двигался. А по
 клику из глазика вылетает пуля — в том направлении, куда турель
 смотрела именно в момент выстрела.
+
+```rust
+// Глазик — центр турели плюс направление, растянутое на 25 пикселей.
+let eye_x = center_x + direction_x * 25.0;
+let eye_y = center_y + direction_y * 25.0;
+```
 
 ## Пуля не следит за курсором
 
@@ -58,91 +64,9 @@ import WasmCanvas from '../../../../components/WasmCanvas.svelte';
 много объектов по клику. Пока что — одна пуля, и этого достаточно,
 чтобы разобраться, как вообще устроен выстрел.
 
-## Код
+## Попробуй сам
 
-Замени содержимое `src/main.rs` на это:
-
-```rust title="src/main.rs"
-use macroquad::prelude::*;
-
-#[macroquad::main("Турель стреляет")]
-async fn main() {
-    // Направление глазика по умолчанию — ещё до первого движения мыши.
-    let mut direction_x = 1.0;
-    let mut direction_y = 0.0;
-
-    // Пуля стоит далеко за пределами экрана, пока не было ни одного
-    // клика, — там её просто не видно.
-    let mut bullet_x = -1000.0;
-    let mut bullet_y = -1000.0;
-    let mut bullet_direction_x = 0.0;
-    let mut bullet_direction_y = 0.0;
-
-    loop {
-        clear_background(BLACK);
-
-        // Турель стоит в центре экрана.
-        let center_x = screen_width() / 2.0;
-        let center_y = screen_height() / 2.0;
-
-        // Координаты курсора.
-        let (mouse_x, mouse_y) = mouse_position();
-
-        // Направление от турели к курсору (как в «Направлении»).
-        let dx = mouse_x - center_x;
-        let dy = mouse_y - center_y;
-        let distance = (dx * dx + dy * dy).sqrt();
-
-        // Курсор не точно в центре — можно обновить направление.
-        if distance > 0.0 {
-            direction_x = dx / distance;
-            direction_y = dy / distance;
-        }
-
-        // Глазик — точка плюс вектор (как в «Точке плюс векторе»):
-        // центр турели плюс направление, растянутое на 25 пикселей.
-        let eye_x = center_x + direction_x * 25.0;
-        let eye_y = center_y + direction_y * 25.0;
-
-        // Клик — новый выстрел: пуля переставляется в глазик, а
-        // направление полёта фиксируется прямо сейчас.
-        if is_mouse_button_pressed(MouseButton::Left) {
-            bullet_x = eye_x;
-            bullet_y = eye_y;
-            bullet_direction_x = direction_x;
-            bullet_direction_y = direction_y;
-        }
-
-        // Пуля летит своим зафиксированным направлением, не подстраиваясь
-        // под курсор — в отличие от «Погони за мышью».
-        bullet_x += bullet_direction_x * 10.0;
-        bullet_y += bullet_direction_y * 10.0;
-
-        // Тело турели.
-        draw_circle(center_x, center_y, 40.0, BLUE);
-        // Глазик — смотрит на курсор.
-        draw_circle(eye_x, eye_y, 10.0, WHITE);
-        // Пуля — рисуется всегда, просто до первого клика она далеко
-        // за экраном и её не видно.
-        draw_circle(bullet_x, bullet_y, 8.0, YELLOW);
-
-        next_frame().await;
-    }
-}
-```
-
-Запусти как обычно:
-
-```sh
-cargo run
-```
-
-Подвигай мышь — глазик поворачивается вслед за курсором. Кликни — из
-глазика вылетит жёлтая пуля и полетит по прямой. Кликни ещё раз, пока
-первая пуля в полёте, — она тут же появится заново из текущего
-положения глазика:
-
-<WasmCanvas name="turret" client:load />
+<TurretDemo name="turret" client:load />
 
 ## Что здесь происходит
 
@@ -151,10 +75,15 @@ cargo run
   деления на ноль, что и в [«Делении на ноль»](../divide-by-zero/)).
 - `eye_x`, `eye_y` — глазик, всегда пересчитывается заново: центр
   турели плюс направление, растянутое до 25 пикселей.
-- `bullet_direction_x`, `bullet_direction_y` — направление пули,
-  наоборот, запоминается только один раз, в момент клика, и после
-  этого не пересчитывается — поэтому пуля летит прямо, а не
-  довёрнутая на курсор.
+- `is_mouse_button_pressed(MouseButton::Left)` — момент клика (как в
+  [«Отрезке мышью»](../segment/)): именно в этот кадр пуля
+  переставляется в глазик, а направление её полёта фиксируется.
+- `bullet_direction_x`, `bullet_direction_y` — направление пули, в
+  отличие от `direction_x`/`direction_y` турели, запоминается только
+  один раз и после этого не пересчитывается — поэтому пуля летит
+  прямо, а не довёрнутая на курсор.
 - `bullet_x`, `bullet_y` начинаются далеко за экраном (`-1000.0`) —
   первый клик просто переставляет их в глазик, и дальше пуля летит
-  оттуда, как обычно.
+  оттуда со скоростью `speed`.
+- `speed` — скорость пули, задаётся полем ниже: чем больше число, тем
+  быстрее пуля долетает до цели.
