@@ -1,0 +1,58 @@
+---
+title: Линия на экране
+description: Рисуем отрезок между двумя точками — из центра прямо в курсор.
+sidebar:
+  order: 20
+---
+
+import WasmCanvas from '../../../../components/WasmCanvas.svelte';
+
+До сих пор мы рисовали только круги. В macroquad есть и другие фигуры
+— например, `draw_line`, которая рисует прямой отрезок между двумя
+точками.
+
+## Код
+
+Замени содержимое `src/main.rs` на это:
+
+```rust title="src/main.rs"
+use macroquad::prelude::*;
+
+#[macroquad::main("Линия")]
+async fn main() {
+    loop {
+        clear_background(BLACK);
+
+        let center_x = screen_width() / 2.0;
+        let center_y = screen_height() / 2.0;
+
+        let (mouse_x, mouse_y) = mouse_position();
+
+        draw_line(center_x, center_y, mouse_x, mouse_y, 4.0, YELLOW);
+
+        next_frame().await;
+    }
+}
+```
+
+Запусти как обычно:
+
+```sh
+cargo run
+```
+
+Линия тянется от центра экрана прямо к курсору, куда бы ты его ни
+навёл. Попробуй прямо здесь:
+
+<WasmCanvas name="line" client:load />
+
+## Что здесь происходит
+
+- `draw_line(x1, y1, x2, y2, толщина, цвет)` — рисует отрезок от точки
+  `(x1, y1)` до точки `(x2, y2)`. Первая точка здесь — центр экрана,
+  вторая — курсор.
+- Четвёртый аргумент, `4.0`, — толщина линии в пикселях. Чем больше
+  число, тем толще отрезок.
+- Так как координаты курсора считаются заново каждый кадр (как и в
+  [«Координатах мыши»](../mouse-position/)), линия тут же
+  перерисовывается вслед за ним.
