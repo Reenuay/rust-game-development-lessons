@@ -1,0 +1,58 @@
+---
+title: Клик мышью
+description: Узнаём, нажата ли кнопка мыши прямо сейчас — тот же приём, что и с клавиатурой.
+sidebar:
+  order: 4
+---
+
+import WasmCanvas from '../../../../components/WasmCanvas.svelte';
+
+Мышь — это ещё один источник ввода, помимо клавиатуры. В macroquad
+для неё есть своя функция — `is_mouse_button_down` — и работает она
+ровно так же, как `is_key_down` из прошлого урока: проверяет, зажата
+ли прямо сейчас указанная кнопка, на каждом кадре.
+
+## Код
+
+Замени содержимое `src/main.rs` на это:
+
+```rust title="src/main.rs"
+use macroquad::prelude::*;
+
+#[macroquad::main("Клик мышью")]
+async fn main() {
+    let center_x = screen_width() / 2.0;
+    let center_y = screen_height() / 2.0;
+
+    loop {
+        clear_background(BLACK);
+
+        if is_mouse_button_down(MouseButton::Left) {
+            draw_circle(center_x, center_y, 100.0, YELLOW);
+        }
+
+        next_frame().await;
+    }
+}
+```
+
+Запусти как обычно:
+
+```sh
+cargo run
+```
+
+Зажми левую кнопку мыши — по центру экрана появится жёлтый кружок, и
+исчезнет, как только кнопку отпустишь. Попробуй прямо здесь:
+
+<WasmCanvas name="mouse" client:load />
+
+## Что здесь происходит
+
+- `MouseButton::Left` — обозначение левой кнопки мыши, точно так же,
+  как `KeyCode::Up` обозначало стрелку вверх.
+- `is_mouse_button_down(MouseButton::Left)` проверяет, зажата ли она
+  прямо сейчас — та же самая идея, что и `is_key_down`, только
+  источник другой.
+- Как только кнопку отпускаешь, `if` на этом кадре не выполняется, и
+  кружок пропадает — ровно как и с клавиатурой.
