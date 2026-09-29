@@ -16,6 +16,14 @@ import RadarDemo from '../../../../components/RadarDemo.svelte';
 Так работает обнаружение в играх: у турели есть радиус обзора, и если
 игрок оказался ближе этого радиуса — турель его заметила.
 
+```rust
+if distance < radius {
+    // игрок рядом
+} else {
+    // игрок далеко
+}
+```
+
 ## Попробуй сам
 
 <RadarDemo name="radar" client:load />
