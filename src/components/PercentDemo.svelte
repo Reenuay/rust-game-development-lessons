@@ -146,6 +146,14 @@ async fn main() {
 </script>
 
 <div class="percent-demo">
+  <WasmCanvas {name} {width} {height} bind:iframeEl />
+
+  <p class="demo-instructions">
+    Меняй значения <code>x%</code> и <code>y%</code> ниже — кружок
+    будет прыгать в новую точку, а код под ним покажет, как это
+    записать в Rust, с уже подставленными числами:
+  </p>
+
   <div class="controls" style={`max-width: ${width}px;`}>
     <label>
       <span class="label-text">x%</span>
@@ -156,8 +164,6 @@ async fn main() {
       <input type="number" bind:value={yPercent} min="0" max="100" step="1" />
     </label>
   </div>
-
-  <WasmCanvas {name} {width} {height} bind:iframeEl />
 
   <div class="expressive-code">
     <figure class="frame has-title not-content">
@@ -176,11 +182,15 @@ async fn main() {
     margin-block: 1rem;
   }
 
+  .demo-instructions {
+    margin: 0.75rem 0;
+  }
+
   .controls {
     display: flex;
     align-items: center;
     gap: 1.5rem;
-    margin-bottom: 0.75rem;
+    margin: 0;
   }
 
   .controls label {

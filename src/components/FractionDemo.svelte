@@ -152,6 +152,14 @@ async fn main() {
 </script>
 
 <div class="fraction-demo">
+  <WasmCanvas {name} {width} {height} bind:iframeEl />
+
+  <p class="demo-instructions">
+    Меняй значения <code>x</code> и <code>y</code> ниже — от 0 до 1 —
+    и смотри, как кружок занимает то же самое место, что и в прошлом
+    уроке с процентами, только без промежуточного деления в коде:
+  </p>
+
   <div class="controls" style={`max-width: ${width}px;`}>
     <label>
       <span class="label-text">x</span>
@@ -162,8 +170,6 @@ async fn main() {
       <input type="number" bind:value={yFraction} min="0" max="1" step="0.1" />
     </label>
   </div>
-
-  <WasmCanvas {name} {width} {height} bind:iframeEl />
 
   <div class="expressive-code">
     <figure class="frame has-title not-content">
@@ -182,11 +188,15 @@ async fn main() {
     margin-block: 1rem;
   }
 
+  .demo-instructions {
+    margin: 0.75rem 0;
+  }
+
   .controls {
     display: flex;
     align-items: center;
     gap: 1.5rem;
-    margin-bottom: 0.75rem;
+    margin: 0;
   }
 
   .controls label {
