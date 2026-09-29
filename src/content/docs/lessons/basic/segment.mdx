@@ -41,13 +41,14 @@ async fn main() {
 
         let (mouse_x, mouse_y) = mouse_position();
 
-        // Истина только в тот кадр, когда кнопку только что нажали.
+        // Истина только в тот кадр, когда кнопку только что нажали —
+        // обновляем первую точку.
         if is_mouse_button_pressed(MouseButton::Left) {
             start_x = mouse_x;
             start_y = mouse_y;
         }
 
-        // Истина, пока кнопка зажата.
+        // Истина, пока левая кнопка мыши зажата — обновляем вторую точку.
         if is_mouse_button_down(MouseButton::Left) {
             end_x = mouse_x;
             end_y = mouse_y;
