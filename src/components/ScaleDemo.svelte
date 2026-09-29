@@ -1,4 +1,6 @@
 <script>
+  import NumberField from './NumberField.svelte';
+
   // Pure math illustration — no macroquad/WASM involved, just an SVG
   // drawn from N and P. Shows the trapezoid you get when you line up
   // the [0, 1] range against the [0, N] range it's meant to scale to:
@@ -96,14 +98,8 @@
   </svg>
 
   <div class="controls" style={`max-width: ${width}px;`}>
-    <label>
-      <span class="label-text">N</span>
-      <input type="number" bind:value={n} min="1" max="50" step="1" />
-    </label>
-    <label>
-      <span class="label-text">P</span>
-      <input type="number" bind:value={p} min="0" max="1" step="0.01" />
-    </label>
+    <NumberField label="N" bind:value={n} min="1" max="50" step="1" />
+    <NumberField label="P" bind:value={p} min="0" max="1" step="0.01" />
   </div>
 </div>
 
@@ -157,31 +153,4 @@
     margin-top: 0.75rem;
   }
 
-  .controls label {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin: 0;
-    line-height: 1;
-    font-family: var(--__sl-font-mono, ui-monospace, monospace);
-    font-size: var(--sl-text-sm);
-    color: var(--sl-color-text);
-  }
-
-  .controls input {
-    width: 5.5rem;
-    height: 1.75rem;
-    padding: 0 0.5rem;
-    /* Plain hairline borders on the inputs were too subtle to notice
-       against the page — a friend of the site owner's couldn't spot
-       them at a glance. The theme's own accent blue reads as an
-       obvious "this is interactive" cue without introducing a new
-       color. */
-    border: 1.5px solid var(--sl-color-accent);
-    border-radius: 0.25rem;
-    background: var(--sl-color-bg);
-    color: var(--sl-color-text);
-    font: inherit;
-    line-height: 1.75rem;
-  }
 </style>
