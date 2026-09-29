@@ -23,11 +23,22 @@ GitHub Pages under base `/rust-game-development-lessons/`.
   program. The static block predates live panels on some older lessons
   (`percentages.mdx`, `fractions.mdx` both had this until it was cleaned
   up) — if you spot another one, remove it the same way.
-- When a lesson's Rust example introduces something new (a new construct,
-  a new function, a non-obvious line), add a short inline `//` comment in
-  the code explaining what that line does — don't rely on the prose below
-  the block alone. This is a deliberate exception to "don't comment
-  obvious code": these are teaching examples, not production code.
+- **Comment every meaningful line of every lesson's code**, not just the
+  lines introducing something new — a short inline `//` comment saying what
+  that line does, right there. Do this even when the exact same thing is
+  already explained in the prose or the "Что здесь происходит" bullets
+  below: the point is that the comment is visible right at the line,
+  without needing to cross-reference a paragraph elsewhere on the page.
+  This is a deliberate exception to "don't comment obvious code": these are
+  teaching examples, not production code. Boilerplate that's identical in
+  every lesson (`clear_background(BLACK)`, `next_frame().await`,
+  `use macroquad::prelude::*`, the `#[macroquad::main(...)]` line) doesn't
+  need one. Apply this both to a lesson's static "## Код" block and to a
+  live demo's `codeFor()` in its Svelte component — and, where a demo's
+  underlying wasm crate (`examples/*/src/main.rs`) has the same logic
+  (even wrapped in different WASM-export plumbing), mirror the same
+  comments there too for consistency, though its export machinery itself
+  stays uncommented since it's never shown to the reader.
 - Structure for a lesson with an interactive live demo: intro prose →
   (optional) a short *conceptual* snippet if useful → `## Попробуй сам` →
   the demo component → `## Что здесь происходит` (bullet points). Look at
