@@ -28,33 +28,7 @@ let x = screen_width() * x_percent / 100.0;
 чуть правее середины. Для вертикали всё то же самое, только через
 `screen_height()`.
 
-## Код
-
-Замени содержимое `src/main.rs` на это:
-
-```rust title="src/main.rs"
-use macroquad::prelude::*;
-
-#[macroquad::main("Проценты")]
-async fn main() {
-    loop {
-        clear_background(BLACK);
-
-        let x = screen_width() * 50.0 / 100.0;
-        let y = screen_height() * 50.0 / 100.0;
-
-        draw_circle(x, y, 80.0, YELLOW);
-
-        next_frame().await;
-    }
-}
-```
-
-Запусти как обычно:
-
-```sh
-cargo run
-```
+## Попробуй сам
 
 <PercentDemo name="percentages" client:load />
 

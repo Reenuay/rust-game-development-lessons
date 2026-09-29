@@ -31,33 +31,7 @@ let x = screen_width() * x_fraction;
 Именно так — числом от 0 до 1 — в коде обычно и записывают доли, а
 проценты (от 0 до 100) чаще встречаются только в тексте, для людей.
 
-## Код
-
-Замени содержимое `src/main.rs` на это:
-
-```rust title="src/main.rs"
-use macroquad::prelude::*;
-
-#[macroquad::main("Доля от 0 до 1")]
-async fn main() {
-    loop {
-        clear_background(BLACK);
-
-        let x = screen_width() * 0.5;
-        let y = screen_height() * 0.5;
-
-        draw_circle(x, y, 80.0, YELLOW);
-
-        next_frame().await;
-    }
-}
-```
-
-Запусти как обычно:
-
-```sh
-cargo run
-```
+## Попробуй сам
 
 <FractionDemo name="fractions" client:load />
 
