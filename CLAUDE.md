@@ -122,8 +122,8 @@ already solves the same shape of problem.
 
 - Work directly on `main`. No feature branches, no PRs — this has been the
   workflow throughout the project.
-- After every push, schedule a deploy check (`send_later`, ~2-3 min out)
-  and confirm the GitHub Actions run succeeded via `mcp__github__actions_list`.
+- After pushing, don't schedule a deploy check or poll GitHub Actions —
+  the user watches the deploy themselves.
 - Rebuild wasm examples locally (`cargo build --release --target
   wasm32-unknown-unknown --manifest-path examples/Cargo.toml`) and copy
   into `public/wasm-examples/<name>/` the same way `.github/workflows/deploy.yml`
