@@ -2,7 +2,7 @@
 title: Hello World
 description: Создаём первый проект на Rust и запускаем его.
 sidebar:
-  order: 2
+  order: 3
 ---
 
 Cargo — это инструмент, который идёт вместе с Rust и создаёт для нас
