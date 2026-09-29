@@ -6,10 +6,10 @@ async fn main() {
     let mut direction_x = 1.0;
     let mut direction_y = 0.0;
 
-    // Пока не было клика — пули на экране нет.
-    let mut bullet_flying = false;
-    let mut bullet_x = 0.0;
-    let mut bullet_y = 0.0;
+    // Пуля стоит далеко за пределами экрана, пока не было ни одного
+    // клика, — там её просто не видно.
+    let mut bullet_x = -1000.0;
+    let mut bullet_y = -1000.0;
     let mut bullet_direction_x = 0.0;
     let mut bullet_direction_y = 0.0;
 
@@ -39,10 +39,9 @@ async fn main() {
         let eye_x = center_x + direction_x * 25.0;
         let eye_y = center_y + direction_y * 25.0;
 
-        // Клик — новый выстрел: пуля стартует из глазика, а направление
-        // полёта фиксируется прямо сейчас и больше не меняется.
+        // Клик — новый выстрел: пуля переставляется в глазик, а
+        // направление полёта фиксируется прямо сейчас.
         if is_mouse_button_pressed(MouseButton::Left) {
-            bullet_flying = true;
             bullet_x = eye_x;
             bullet_y = eye_y;
             bullet_direction_x = direction_x;
@@ -51,19 +50,16 @@ async fn main() {
 
         // Пуля летит своим зафиксированным направлением, не подстраиваясь
         // под курсор — в отличие от «Погони за мышью».
-        if bullet_flying {
-            bullet_x += bullet_direction_x * 10.0;
-            bullet_y += bullet_direction_y * 10.0;
-        }
+        bullet_x += bullet_direction_x * 10.0;
+        bullet_y += bullet_direction_y * 10.0;
 
         // Тело турели.
         draw_circle(center_x, center_y, 40.0, BLUE);
         // Глазик — смотрит на курсор.
         draw_circle(eye_x, eye_y, 10.0, WHITE);
-        // Пуля — рисуем, только если уже был хоть один клик.
-        if bullet_flying {
-            draw_circle(bullet_x, bullet_y, 8.0, YELLOW);
-        }
+        // Пуля — рисуется всегда, просто до первого клика она далеко
+        // за экраном и её не видно.
+        draw_circle(bullet_x, bullet_y, 8.0, YELLOW);
 
         next_frame().await;
     }
