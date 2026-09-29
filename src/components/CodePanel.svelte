@@ -94,6 +94,21 @@
     padding-inline: 1rem;
   }
 
+  /* Shiki (with cssVariablePrefix: '--') writes each token's two
+     theme colors as --0 (dark) / --1 (light) custom properties on the
+     span itself — it never sets `color` directly, that's left to the
+     surrounding page. Expressive Code's real CSS normally does that
+     for us; since we're not using it, we have to do it ourselves,
+     switching on the same [data-theme] Starlight's theme toggle sets
+     on <html>. */
+  .demo-code-body :global(span[style*='--0']) {
+    color: var(--1);
+  }
+
+  :global([data-theme='dark']) .demo-code-body :global(span[style*='--0']) {
+    color: var(--0);
+  }
+
   .demo-code-copy {
     position: absolute;
     top: 0.5rem;
