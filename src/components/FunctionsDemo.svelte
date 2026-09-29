@@ -81,12 +81,12 @@ async fn main() {
         let eye_x = center_x + direction_x * 25.0;
         let eye_y = center_y + direction_y * 25.0;
 
-        // Клик мышью — выстрел. Обновляем пулю только в этот момент:
-        // ставим её в глазик и запоминаем текущее направление как
-        // направление её полёта. Дальше оно уже не меняется.
+        // Кнопка мыши только что нажата — новый выстрел.
         if is_mouse_button_pressed(MouseButton::Left) {
+            // Переносим пулю в положение глазика.
             bullet_x = eye_x;
             bullet_y = eye_y;
+            // Устанавливаем её направление в то, что вычислили выше.
             bullet_direction_x = direction_x;
             bullet_direction_y = direction_y;
         }
