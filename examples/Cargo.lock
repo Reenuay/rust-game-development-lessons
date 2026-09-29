@@ -383,6 +383,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "random"
+version = "0.1.0"
+dependencies = [
+ "macroquad",
+]
+
+[[package]]
 name = "relative"
 version = "0.1.0"
 dependencies = [
