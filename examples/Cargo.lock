@@ -167,6 +167,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "for-loop"
+version = "0.1.0"
+dependencies = [
+ "macroquad",
+]
+
+[[package]]
 name = "fractions"
 version = "0.1.0"
 dependencies = [
