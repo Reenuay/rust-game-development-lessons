@@ -22,17 +22,25 @@
     p = clampP(p);
   });
 
+  // Rounding to 1 decimal made nearby values (0.5 vs 0.55) display as
+  // the exact same text, looking like the label wasn't updating at
+  // all — round to 2 instead, trimming any trailing zero.
   function formatLabel(value) {
-    return Number.isInteger(value) ? `${value}` : value.toFixed(1);
+    return Number(value.toFixed(2)).toString();
   }
 
   // SVG viewBox geometry — fixed internal units, scaled to fit `width`
-  // via CSS.
+  // via CSS. The dynamic P / P*N labels sit further out from the axis
+  // lines than the static tick labels do, so they don't collide.
   const VW = 600;
   const PAD = 50;
   const DRAW_WIDTH = VW - PAD * 2;
-  const Y_TOP = 55;
+  const Y_TOP = 60;
   const Y_BOTTOM = 150;
+  const TICK_TOP_Y = Y_TOP - 16;
+  const TICK_BOTTOM_Y = Y_BOTTOM + 22;
+  const PERCENT_LABEL_TOP_Y = Y_TOP - 38;
+  const PERCENT_LABEL_BOTTOM_Y = Y_BOTTOM + 50;
 
   let pxPerUnit = $derived(DRAW_WIDTH / n);
   let topWidth = $derived(pxPerUnit * 1);
@@ -57,7 +65,7 @@
 </script>
 
 <div class="scale-demo">
-  <svg class="scale-svg" viewBox={`0 0 ${VW} 215`} style={`max-width: ${width}px;`}>
+  <svg class="scale-svg" viewBox={`0 0 ${VW} 230`} style={`max-width: ${width}px;`}>
     {#each ticks as t}
       <line
         x1={topX(t)}
@@ -75,16 +83,16 @@
       y2={Y_BOTTOM}
       class="percent-line"
     />
-    <text x={clampLabelX(topX(p))} y={Y_TOP - 14} class="percent-label">{formatLabel(p)}</text>
-    <text x={clampLabelX(bottomX(p))} y={Y_BOTTOM + 26} class="percent-label">{formatLabel(p * n)}</text>
+    <text x={clampLabelX(topX(p))} y={PERCENT_LABEL_TOP_Y} class="percent-label">{formatLabel(p)}</text>
+    <text x={clampLabelX(bottomX(p))} y={PERCENT_LABEL_BOTTOM_Y} class="percent-label">{formatLabel(p * n)}</text>
 
     <line x1={PAD} y1={Y_TOP} x2={PAD + topWidth} y2={Y_TOP} class="axis-line" />
-    <text x={PAD} y={Y_TOP - 10} class="tick-label">0</text>
-    <text x={PAD + topWidth} y={Y_TOP - 10} class="tick-label">1</text>
+    <text x={PAD} y={TICK_TOP_Y} class="tick-label">0</text>
+    <text x={PAD + topWidth} y={TICK_TOP_Y} class="tick-label">1</text>
 
     <line x1={PAD} y1={Y_BOTTOM} x2={PAD + DRAW_WIDTH} y2={Y_BOTTOM} class="axis-line" />
-    <text x={PAD} y={Y_BOTTOM + 18} class="tick-label">0</text>
-    <text x={PAD + DRAW_WIDTH} y={Y_BOTTOM + 18} class="tick-label">{n}</text>
+    <text x={PAD} y={TICK_BOTTOM_Y} class="tick-label">0</text>
+    <text x={PAD + DRAW_WIDTH} y={TICK_BOTTOM_Y} class="tick-label">{n}</text>
   </svg>
 
   <div class="controls" style={`max-width: ${width}px;`}>
@@ -94,7 +102,7 @@
     </label>
     <label>
       <span class="label-text">P</span>
-      <input type="number" bind:value={p} min="0" max="1" step="0.1" />
+      <input type="number" bind:value={p} min="0" max="1" step="0.01" />
     </label>
   </div>
 </div>

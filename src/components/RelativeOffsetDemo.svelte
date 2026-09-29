@@ -173,7 +173,7 @@ async fn main() {
     </label>
     <label>
       <span class="label-text">P</span>
-      <input type="number" bind:value={percent} min="0" max="1" step="0.1" />
+      <input type="number" bind:value={percent} min="0" max="1" step="0.01" />
     </label>
   </div>
 

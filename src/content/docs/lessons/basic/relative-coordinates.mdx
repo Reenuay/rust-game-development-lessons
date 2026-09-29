@@ -42,64 +42,12 @@ import RelativeOffsetDemo from '../../../../components/RelativeOffsetDemo.svelte
 Внутри большого круга нарисован маленький жёлтый кружок, смещённый от
 центра на фиксированное число пикселей:
 
-```rust title="src/main.rs"
-use macroquad::prelude::*;
-
-#[macroquad::main("Абсолютные координаты")]
-async fn main() {
-    loop {
-        clear_background(BLACK);
-
-        let center_x = screen_width() / 2.0;
-        let center_y = screen_height() / 2.0;
-
-        draw_circle(center_x, center_y, 400.0, DARKBLUE);
-        draw_circle(center_x + 200.0, center_y, 40.0, YELLOW);
-
-        next_frame().await;
-    }
-}
-```
-
-Запусти как обычно:
-
-```sh
-cargo run
-```
-
 <AbsoluteOffsetDemo name="absolute" client:load />
 
 ## Относительные координаты
 
 А вот то же самое, но смещение задано не числом пикселей, а долей от
 радиуса — `radius`, умноженный на `percent`:
-
-```rust title="src/main.rs"
-use macroquad::prelude::*;
-
-#[macroquad::main("Относительные координаты")]
-async fn main() {
-    loop {
-        clear_background(BLACK);
-
-        let center_x = screen_width() / 2.0;
-        let center_y = screen_height() / 2.0;
-        let radius = 400.0;
-        let percent = 0.5;
-
-        draw_circle(center_x, center_y, radius, DARKBLUE);
-        draw_circle(center_x + radius * percent, center_y, 40.0, YELLOW);
-
-        next_frame().await;
-    }
-}
-```
-
-Запусти как обычно:
-
-```sh
-cargo run
-```
 
 <RelativeOffsetDemo name="relative" client:load />
 
