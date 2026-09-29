@@ -90,6 +90,26 @@
         if (callback) callback(LOGICAL_WIDTH, LOGICAL_HEIGHT);
       }
 
+      // mq_js_bundle.js reads the mouse/touch position on every move,
+      // click and touch event through its own top-level
+      // `mouse_relative_position(clientX, clientY)` — normally just the
+      // event's position relative to the canvas's on-screen (CSS) box.
+      // That's the right answer when the backing buffer matches the CSS
+      // box 1:1, but resize() above forces the buffer to the fixed
+      // LOGICAL_WIDTH/HEIGHT while CSS stretches it to whatever size the
+      // iframe actually is — so a click at the CSS box's right edge, say,
+      // needs to land at LOGICAL_WIDTH in "world" coordinates, not at the
+      // box's own (much smaller) pixel width. Redefining this the same
+      // way as resize() — a later top-level declaration in the shared
+      // global scope — scales into logical coordinates instead.
+      function mouse_relative_position(clientX, clientY) {
+        const rect = canvas.getBoundingClientRect();
+        return {
+          x: ((clientX - rect.left) / rect.width) * LOGICAL_WIDTH,
+          y: ((clientY - rect.top) / rect.height) * LOGICAL_HEIGHT,
+        };
+      }
+
       load("{{NAME}}.wasm");
     </script>
   </body>
