@@ -32,23 +32,18 @@ async fn main() {
         ];
 
         let (mouse_x, mouse_y) = mouse_position();
+        // Кнопка мыши зажата прямо сейчас.
+        let mouse_down = is_mouse_button_down(MouseButton::Left);
 
-        // Кнопка мыши зажата — есть смысл проверять попадание в кружки.
-        if is_mouse_button_down(MouseButton::Left) {
-            for button in &buttons {
-                // Мышь попадает внутрь именно этого кружка.
-                let inside = distance(mouse_x, mouse_y, button.x, button.y) < button.radius;
+        for button in &buttons {
+            // Мышь попадает внутрь именно этого кружка.
+            let inside = distance(mouse_x, mouse_y, button.x, button.y) < button.radius;
+            // Кнопка нажата, только если верно и то, и другое сразу.
+            let pressed = mouse_down && inside;
 
-                if inside {
-                    draw_circle(button.x, button.y, button.radius, BLUE);
-                } else {
-                    draw_circle(button.x, button.y, button.radius, button.color);
-                }
-            }
-        } else {
-            // Мышь отпущена — ни один кружок нажатым быть не может,
-            // просто рисуем каждый его обычным цветом.
-            for button in &buttons {
+            if pressed {
+                draw_circle(button.x, button.y, button.radius, BLUE);
+            } else {
                 draw_circle(button.x, button.y, button.radius, button.color);
             }
         }
