@@ -4,19 +4,16 @@
   // Pure math illustration, no macroquad/WASM — same idea as
   // ScaleDemo.svelte. Gray vector with adjustable length/angle, a red
   // unit vector (fixed on-screen length, standing for length 1) drawn
-  // over it in the same direction, and a red arc marking the angle
-  // between the x-axis and the vector. x/y labels live right on the
-  // drawing, placed along each vector's own direction (see
-  // grayLabelX/Y, redLabelX/Y below) rather than at a fixed spot, so
-  // they never collide with the axes or each other as angle sweeps
-  // through 0°/180°/360°.
+  // in the same direction. Nothing is labeled by default — a button
+  // reveals it step by step: first the gray vector's own x/y as
+  // projections dropping onto the axes, then the same for the red
+  // vector (its x/y being exactly cos/sin of the angle), together with
+  // the arc marking that angle. Same "measure it, don't just label it"
+  // idea as the arc-straightening animation in the radians lesson.
   let { width = 720 } = $props();
 
   let length = $state(4);
   let angle = $state(40);
-
-  let highlightLength = $state(false);
-  let highlightAngle = $state(false);
 
   function clampLength(value) {
     return Math.min(6, Math.max(2, Math.round(value * 2) / 2));
@@ -50,7 +47,7 @@
   let radians = $derived((angle * Math.PI) / 180);
 
   // The vector's own x, y — not pixels, the actual math values (length
-  // times cos/sin) — same numbers the on-drawing labels show.
+  // times cos/sin) — same numbers the projections reveal below.
   let grayMathX = $derived(length * Math.cos(radians));
   let grayMathY = $derived(length * Math.sin(radians));
   let unitMathX = $derived(Math.cos(radians));
@@ -62,10 +59,10 @@
   let unitTipY = $derived(ORIGIN_Y + unitMathY * UNIT_PX);
 
   // The <line> itself is drawn a few pixels past the true tip (the one
-  // used for the labels and the projections above) — otherwise the
-  // line's own stroke width poked out past the arrowhead marker's
-  // point, instead of the marker fully covering it. Purely visual:
-  // the numbers shown always come from the real, un-extended tip.
+  // used for the projections above) — otherwise the line's own stroke
+  // width poked out past the arrowhead marker's point, instead of the
+  // marker fully covering it. Purely visual: the numbers shown always
+  // come from the real, un-extended tip.
   let dirX = $derived(Math.cos(radians));
   let dirY = $derived(Math.sin(radians));
   let grayLineEndX = $derived(grayTipX + dirX * 6);
@@ -87,107 +84,116 @@
       ? `M ${arcStartX} ${arcStartY} A ${ARC_RADIUS} ${ARC_RADIUS} 0 1 1 ${ORIGIN_X - ARC_RADIUS} ${ORIGIN_Y} A ${ARC_RADIUS} ${ARC_RADIUS} 0 1 1 ${arcStartX} ${arcStartY}`
       : `M ${arcStartX} ${arcStartY} A ${ARC_RADIUS} ${ARC_RADIUS} 0 ${arcLargeFlag} 1 ${arcEndX} ${arcEndY}`,
   );
+  // Exact length of that path — radius times angle in radians, same
+  // formula as the radians lesson — used below to "draw" the arc in
+  // with a growing stroke instead of just switching it on.
+  let arcLength = $derived(Math.max(ARC_RADIUS * radians, 0.01));
 
-  // Gray label: further out along the vector's own direction, past its
-  // tip — never "always below", always where the vector itself points.
-  // Once the vector gets close to horizontal, though, that ray-based
-  // spot sits right where the line (or the x-axis right behind it)
-  // passes through the text — lift the label above the line there, by
-  // more the more horizontal the vector is, tapering back to no lift
-  // at all once it's steep enough that the ray already clears on its
-  // own.
-  const GRAY_LABEL_GAP = 26;
-  const GRAY_LABEL_MAX_LIFT = 20;
-  let grayLabelDist = $derived(length * PX_PER_UNIT + GRAY_LABEL_GAP);
-  let grayLabelLift = $derived(Math.max(0, 1 - Math.abs(dirY) * 2) * GRAY_LABEL_MAX_LIFT);
-  let grayLabelX = $derived(ORIGIN_X + dirX * grayLabelDist);
-  let grayLabelY = $derived(ORIGIN_Y + dirY * grayLabelDist - grayLabelLift);
+  // Revealing: 0 = nothing shown, 1 = fully shown. Two separate knobs,
+  // animated one after the other, so the story reads "here's the gray
+  // vector's own x/y" and only then "here's the same thing for the red
+  // one — and that's exactly cos/sin of the angle" instead of dumping
+  // both at once.
+  let revealed = $state(false);
+  let grayProgress = $state(0);
+  let redProgress = $state(0);
+  // Bumped on every click; an in-flight animation checks it and stops
+  // updating (instead of fighting a newer one) once it no longer
+  // matches — simpler than tracking individual animation-frame ids.
+  let generation = 0;
 
-  // Text-anchor follows the same direction: a label sitting past a
-  // mostly-horizontal vector should grow away from it (start/end), not
-  // spill back across it (middle only for the near-vertical case).
-  function anchorFor(dx) {
-    if (dx > 0.15) return 'start';
-    if (dx < -0.15) return 'end';
-    return 'middle';
+  function animateValue(getCurrent, setValue, target, duration, myGeneration) {
+    return new Promise((resolve) => {
+      const start = getCurrent();
+      const startTime = performance.now();
+
+      function step(now) {
+        if (myGeneration !== generation) {
+          resolve();
+          return;
+        }
+        const progress = Math.min(1, (now - startTime) / duration);
+        const eased = progress < 0.5 ? 2 * progress * progress : 1 - (-2 * progress + 2) ** 2 / 2;
+        setValue(start + (target - start) * eased);
+        if (progress < 1) {
+          requestAnimationFrame(step);
+        } else {
+          resolve();
+        }
+      }
+
+      requestAnimationFrame(step);
+    });
   }
-  let grayLabelAnchor = $derived(anchorFor(dirX));
 
-  // Red label: offset sideways from the unit vector's tip — left when
-  // it points left, right when it points right. Unlike the gray label
-  // this never follows the vector out along its own ray: the unit
-  // vector is short, so "past the tip" would land right next to (or
-  // inside) the gray vector and arc.
-  const RED_LABEL_OFFSET = 34;
-  const RED_LABEL_VERTICAL_BIAS = 18;
-  // The more horizontal the vector, the closer its tip sits to the
-  // "angle" label's own spot (just right of the arc, right above the
-  // x-axis) — so the nearer to horizontal, the harder this pushes the
-  // label away from the axis, on top of the fixed bias below.
-  const RED_LABEL_EXTRA_BIAS = 24;
-  let unitPointsRight = $derived(dirX >= 0);
-  let redLabelX = $derived(unitTipX + (unitPointsRight ? RED_LABEL_OFFSET : -RED_LABEL_OFFSET));
-  let redLabelHorizontalness = $derived(Math.max(0, Math.abs(dirX) - 0.3) / 0.7);
-  let redLabelBias = $derived(RED_LABEL_VERTICAL_BIAS + redLabelHorizontalness * RED_LABEL_EXTRA_BIAS);
-  // A nudge down (or up, once the vector points mostly upward) — without
-  // it, the label sat right on top of the x-axis (and the "angle" label
-  // next to the arc) whenever the vector was close to horizontal, i.e.
-  // angle near 0°/180°/360°.
-  let redLabelY = $derived(unitTipY + (dirY >= 0 ? redLabelBias : -redLabelBias));
-  let redLabelAnchor = $derived(unitPointsRight ? 'start' : 'end');
+  async function toggleReveal() {
+    generation += 1;
+    const myGeneration = generation;
+    revealed = !revealed;
 
-  // Angle label: a short fixed identifier next to the arc — not a
-  // number (the angle field above already shows that), just "angle"
-  // pointing at what the arc means. Fixed just to the right of the
-  // arc's own starting point (always on the positive x-axis, angle=0),
-  // rather than tracking the sweep — a position that follows the
-  // current angle kept drifting onto the arc itself.
-  const ANGLE_LABEL_X = ORIGIN_X + ARC_RADIUS + 14;
-  const ANGLE_LABEL_Y = ORIGIN_Y - 10;
-
-  // Background plates behind each label, so a label that ends up sitting
-  // on top of the gray vector (this happens by design for the gray label
-  // itself once the vector is near-horizontal, see grayLabelLift above)
-  // fully covers the line behind it instead of the line cutting through
-  // the text. Sized from the label's own rendered bounding box — exact,
-  // unlike guessing a width from character count — so it always hugs the
-  // real text regardless of how many digits happen to be showing.
-  let grayLabelEl = $state(null);
-  let unitLabelEl = $state(null);
-  let angleLabelEl = $state(null);
-  let grayLabelBox = $state(null);
-  let unitLabelBox = $state(null);
-  let angleLabelBox = $state(null);
-
-  const LABEL_BG_PAD_X = 4;
-  const LABEL_BG_PAD_Y = 2;
-
-  function measure(el) {
-    return el ? el.getBBox() : null;
+    if (revealed) {
+      // Gray first, then red — one story at a time.
+      await animateValue(() => grayProgress, (v) => (grayProgress = v), 1, 500, myGeneration);
+      if (myGeneration !== generation) return;
+      await animateValue(() => redProgress, (v) => (redProgress = v), 1, 500, myGeneration);
+    } else {
+      await Promise.all([
+        animateValue(() => grayProgress, (v) => (grayProgress = v), 0, 400, myGeneration),
+        animateValue(() => redProgress, (v) => (redProgress = v), 0, 400, myGeneration),
+      ]);
+    }
   }
 
   $effect(() => {
-    // Re-measure whenever the text or its position changes.
-    grayLabelX;
-    grayLabelY;
-    grayLabelAnchor;
-    formatNum(grayMathX);
-    formatNum(grayMathY);
-    grayLabelBox = measure(grayLabelEl);
+    return () => {
+      generation += 1;
+    };
   });
 
-  $effect(() => {
-    redLabelX;
-    redLabelY;
-    redLabelAnchor;
-    formatNum(unitMathX);
-    formatNum(unitMathY);
-    unitLabelBox = measure(unitLabelEl);
-  });
+  // Projection endpoints — grow from the tip (at progress 0) out to the
+  // axis (at progress 1), each vector using its own progress knob.
+  let grayProjXEndY = $derived(grayTipY + (ORIGIN_Y - grayTipY) * grayProgress);
+  let grayProjYEndX = $derived(grayTipX + (ORIGIN_X - grayTipX) * grayProgress);
+  let redProjXEndY = $derived(unitTipY + (ORIGIN_Y - unitTipY) * redProgress);
+  let redProjYEndX = $derived(unitTipX + (ORIGIN_X - unitTipX) * redProgress);
 
-  $effect(() => {
-    angleLabelBox = measure(angleLabelEl);
-  });
+  // Which side of each axis the label should land on — continuing past
+  // the axis in the same direction the projection line was already
+  // travelling, so the number settles just beyond the crossing instead
+  // of sitting on top of the axis itself. Same angle for both vectors,
+  // so one pair of directions serves both.
+  const GAP = 18;
+  let axisOffsetDirY = $derived(dirY === 0 ? 1 : -Math.sign(dirY));
+  let axisOffsetDirX = $derived(dirX === 0 ? 1 : -Math.sign(dirX));
+  let yLabelAnchor = $derived(axisOffsetDirX > 0 ? 'start' : 'end');
+
+  let grayXLabelY = $derived(grayProjXEndY + axisOffsetDirY * GAP * grayProgress);
+  let grayYLabelX = $derived(grayProjYEndX + axisOffsetDirX * GAP * grayProgress);
+  let redXLabelY = $derived(redProjXEndY + axisOffsetDirY * GAP * redProgress);
+  let redYLabelX = $derived(redProjYEndX + axisOffsetDirX * GAP * redProgress);
+
+  // A label's OTHER coordinate — the one it doesn't share with its own
+  // projection line's growing end — is normally just the tip's own x
+  // (for an x-label) or y (for a y-label). That's fine on its own, but
+  // gray and red sit on the very same ray, so whenever the vector is
+  // close to an axis (near 0°/90°/180°/...) both vectors' tips land
+  // close together on that coordinate too, however different their
+  // lengths are — and their labels would land right on top of each
+  // other. Nudge red's the same way the gap above does, just along the
+  // other coordinate — a wider one than GAP, since two whole strings
+  // side by side (like "x=0" and "cos=0") need more room between their
+  // centers than a single digit sitting past an axis does.
+  //
+  // Only apply the nudge when the tips are actually close enough on
+  // that coordinate to be at risk — otherwise, near a diagonal angle,
+  // both nudges (x and y) would fire at once and push red's own cos
+  // and sin labels into each other instead of away from gray's.
+  const SEPARATION = 46;
+  const RISK_DISTANCE = 100;
+  let xCollisionRisk = $derived(Math.max(0, 1 - Math.abs(grayTipX - unitTipX) / RISK_DISTANCE));
+  let yCollisionRisk = $derived(Math.max(0, 1 - Math.abs(grayTipY - unitTipY) / RISK_DISTANCE));
+  let redXLabelX = $derived(unitTipX + axisOffsetDirX * SEPARATION * redProgress * xCollisionRisk);
+  let redYLabelY = $derived(unitTipY + axisOffsetDirY * SEPARATION * redProgress * yCollisionRisk);
 </script>
 
 <div class="sincos-demo">
@@ -205,31 +211,30 @@
     <line x1="0" y1={ORIGIN_Y} x2={VW} y2={ORIGIN_Y} class="axis-line" />
     <line x1={ORIGIN_X} y1="0" x2={ORIGIN_X} y2={VH} class="axis-line" />
 
-    <!-- Unit vector's projection onto each axis — drawn first, so the
-         vectors and their arrowheads sit on top of them. -->
-    <line x1={unitTipX} y1={unitTipY} x2={unitTipX} y2={ORIGIN_Y} class="projection-line" />
-    <line x1={unitTipX} y1={unitTipY} x2={ORIGIN_X} y2={unitTipY} class="projection-line" />
+    <!-- Gray vector's projections onto each axis — grow in on reveal. -->
+    <line x1={grayTipX} y1={grayTipY} x2={grayTipX} y2={grayProjXEndY} class="projection-line-gray" />
+    <line x1={grayTipX} y1={grayTipY} x2={grayProjYEndX} y2={grayTipY} class="projection-line-gray" />
+    <text x={grayTipX} y={grayXLabelY} class="gray-label" text-anchor="middle" dominant-baseline="middle" style={`opacity: ${grayProgress}`}
+      >x={formatNum(grayMathX)}</text
+    >
+    <text x={grayYLabelX} y={grayTipY} class="gray-label" text-anchor={yLabelAnchor} dominant-baseline="middle" style={`opacity: ${grayProgress}`}
+      >y={formatNum(grayMathY)}</text
+    >
 
-    <!-- Arc marking the angle between the x-axis and the vector. -->
-    <path d={arcPath} class="arc-path" />
-    {#if angleLabelBox}
-      <rect
-        x={angleLabelBox.x - LABEL_BG_PAD_X}
-        y={angleLabelBox.y - LABEL_BG_PAD_Y}
-        width={angleLabelBox.width + LABEL_BG_PAD_X * 2}
-        height={angleLabelBox.height + LABEL_BG_PAD_Y * 2}
-        rx="4"
-        class="label-bg"
-      />
-    {/if}
-    <text
-      bind:this={angleLabelEl}
-      x={ANGLE_LABEL_X}
-      y={ANGLE_LABEL_Y}
-      class="angle-label"
-      text-anchor="start"
-      data-pulse={highlightAngle ? '' : undefined}
-    >angle</text>
+    <!-- Red (unit) vector's projections — same idea, revealed after
+         the gray ones, together with the arc marking the angle. -->
+    <line x1={unitTipX} y1={unitTipY} x2={unitTipX} y2={redProjXEndY} class="projection-line-red" />
+    <line x1={unitTipX} y1={unitTipY} x2={redProjYEndX} y2={unitTipY} class="projection-line-red" />
+    <text x={redXLabelX} y={redXLabelY} class="unit-label" text-anchor="middle" dominant-baseline="middle" style={`opacity: ${redProgress}`}
+      >cos={formatNum(unitMathX)}</text
+    >
+    <text x={redYLabelX} y={redYLabelY} class="unit-label" text-anchor={yLabelAnchor} dominant-baseline="middle" style={`opacity: ${redProgress}`}
+      >sin={formatNum(unitMathY)}</text
+    >
+
+    <!-- Arc marking the angle — drawn in (not just faded in) together
+         with the red vector's own reveal. -->
+    <path d={arcPath} class="arc-path" stroke-dasharray={arcLength} stroke-dashoffset={arcLength * (1 - redProgress)} />
 
     <!-- Gray vector — adjustable length and angle. -->
     <line
@@ -240,25 +245,6 @@
       class="gray-line"
       marker-end="url(#sincos-arrow-gray)"
     />
-    {#if grayLabelBox}
-      <rect
-        x={grayLabelBox.x - LABEL_BG_PAD_X}
-        y={grayLabelBox.y - LABEL_BG_PAD_Y}
-        width={grayLabelBox.width + LABEL_BG_PAD_X * 2}
-        height={grayLabelBox.height + LABEL_BG_PAD_Y * 2}
-        rx="4"
-        class="label-bg"
-      />
-    {/if}
-    <text
-      bind:this={grayLabelEl}
-      x={grayLabelX}
-      y={grayLabelY}
-      class="gray-label"
-      text-anchor={grayLabelAnchor}
-      dominant-baseline="middle"
-      data-pulse={highlightLength || highlightAngle ? '' : undefined}
-    >x={formatNum(grayMathX)}, y={formatNum(grayMathY)}</text>
 
     <!-- Unit vector — same origin, same direction, fixed on-screen
          length, because its length is always exactly 1. -->
@@ -270,55 +256,23 @@
       class="unit-line"
       marker-end="url(#sincos-arrow-red)"
     />
-    {#if unitLabelBox}
-      <rect
-        x={unitLabelBox.x - LABEL_BG_PAD_X}
-        y={unitLabelBox.y - LABEL_BG_PAD_Y}
-        width={unitLabelBox.width + LABEL_BG_PAD_X * 2}
-        height={unitLabelBox.height + LABEL_BG_PAD_Y * 2}
-        rx="4"
-        class="label-bg"
-      />
-    {/if}
-    <text
-      bind:this={unitLabelEl}
-      x={redLabelX}
-      y={redLabelY}
-      class="unit-label"
-      text-anchor={redLabelAnchor}
-      dominant-baseline="middle"
-      data-pulse={highlightAngle ? '' : undefined}
-    >x={formatNum(unitMathX)}, y={formatNum(unitMathY)}</text>
 
     <circle cx={ORIGIN_X} cy={ORIGIN_Y} r="4" class="origin-dot" />
   </svg>
 
   <p class="demo-legend">
     Серый — вектор с задаваемыми длиной и углом. Красный — единичный
-    вектор (длина ровно 1) в том же самом направлении. Пунктир от
-    красного вектора к осям — его проекции на <code>x</code> и
-    <code>y</code>.
+    вектор (длина ровно 1) в том же самом направлении. Кнопка ниже
+    показывает их <code>x</code> и <code>y</code> — сначала у серого,
+    потом у красного вместе с углом, который им обоим задан.
   </p>
 
   <div class="controls" style={`max-width: ${width}px;`}>
-    <NumberField
-      label="length"
-      bind:value={length}
-      min="2"
-      max="6"
-      step="0.5"
-      onfocus={() => (highlightLength = true)}
-      onblur={() => (highlightLength = false)}
-    />
-    <NumberField
-      label="angle°"
-      bind:value={angle}
-      min="0"
-      max="360"
-      step="1"
-      onfocus={() => (highlightAngle = true)}
-      onblur={() => (highlightAngle = false)}
-    />
+    <NumberField label="length" bind:value={length} min="2" max="6" step="0.5" />
+    <NumberField label="angle°" bind:value={angle} min="0" max="360" step="1" />
+    <button type="button" class="reveal-button" onclick={toggleReveal}>
+      {revealed ? 'Скрыть' : 'Показать'}
+    </button>
   </div>
 </div>
 
@@ -342,11 +296,18 @@
     stroke-dasharray: 4 4;
   }
 
-  .projection-line {
+  .projection-line-gray {
+    stroke: var(--sl-color-gray-2);
+    stroke-width: 1.5;
+    stroke-dasharray: 3 3;
+    opacity: 0.7;
+  }
+
+  .projection-line-red {
     stroke: #ef4444;
     stroke-width: 1.5;
     stroke-dasharray: 3 3;
-    opacity: 0.6;
+    opacity: 0.7;
   }
 
   .arc-path {
@@ -379,10 +340,6 @@
     fill: var(--sl-color-text);
   }
 
-  .label-bg {
-    fill: var(--sl-color-bg);
-  }
-
   .gray-label {
     fill: var(--sl-color-text);
     color: var(--sl-color-text);
@@ -398,18 +355,33 @@
     font-family: var(--__sl-font-mono, ui-monospace, monospace);
   }
 
-  .angle-label {
-    fill: #ef4444;
-    color: #ef4444;
-    font-size: 14px;
-    font-weight: 600;
-    font-family: var(--__sl-font-mono, ui-monospace, monospace);
-  }
-
   .controls {
     display: flex;
     align-items: center;
     gap: 1.5rem;
     margin-top: 0.75rem;
+  }
+
+  .reveal-button {
+    /* Starlight's prose CSS adds margin-top between adjacent content
+       elements — NumberField's own <label> resets this on itself (see
+       the comment in that file), but a plain <button> next to it
+       still gets pushed down without the same reset. */
+    margin: 0;
+    height: 1.75rem;
+    padding: 0 0.75rem;
+    border: 1.5px solid var(--sl-color-accent);
+    border-radius: 0.25rem;
+    background: var(--sl-color-bg);
+    color: var(--sl-color-text);
+    font: inherit;
+    font-family: var(--__sl-font-mono, ui-monospace, monospace);
+    font-size: var(--sl-text-sm);
+    line-height: 1.75rem;
+    cursor: pointer;
+  }
+
+  .reveal-button:hover {
+    background: var(--sl-color-gray-6);
   }
 </style>
