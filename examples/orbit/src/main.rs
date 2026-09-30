@@ -16,9 +16,17 @@ struct Point {
 
 // Точка на окружности радиусом radius вокруг center, под углом angle.
 fn orbit(center: Point, radius: f32, angle: f32) -> Point {
+    // Единичный вектор — направление длиной 1, вычисленное прямо из угла
+    // (как в уроке «Направление»), без всякой второй точки.
+    let direction_x = angle.cos();
+    let direction_y = angle.sin();
+
+    // Растягиваем направление до длины radius и прибавляем к центру —
+    // получаем точку на самой окружности (тот же приём сложения, что и
+    // в уроке «Смещение»).
     Point {
-        x: center.x + radius * angle.cos(),
-        y: center.y + radius * angle.sin(),
+        x: center.x + direction_x * radius,
+        y: center.y + direction_y * radius,
     }
 }
 
