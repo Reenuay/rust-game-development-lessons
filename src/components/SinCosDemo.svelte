@@ -73,11 +73,11 @@
 <div class="sincos-demo">
   <svg class="sincos-svg" viewBox={`0 0 ${VW} ${VH}`} style={`max-width: ${width}px;`}>
     <defs>
-      <marker id="sincos-arrow-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
-        <path d="M0,0 L10,5 L0,10 Z" class="gray-arrow" />
+      <marker id="sincos-arrow-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto">
+        <path d="M0,1.5 L10,5 L0,8.5 Z" class="gray-arrow" />
       </marker>
-      <marker id="sincos-arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
-        <path d="M0,0 L10,5 L0,10 Z" class="unit-arrow" />
+      <marker id="sincos-arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto">
+        <path d="M0,1.5 L10,5 L0,8.5 Z" class="unit-arrow" />
       </marker>
     </defs>
 
