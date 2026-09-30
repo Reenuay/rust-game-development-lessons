@@ -494,6 +494,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "steering"
+version = "0.1.0"
+dependencies = [
+ "macroquad",
+]
+
+[[package]]
 name = "stop"
 version = "0.1.0"
 dependencies = [
