@@ -311,7 +311,7 @@
       onblur={() => (highlightLength = false)}
     />
     <NumberField
-      label="angle"
+      label="angle°"
       bind:value={angle}
       min="0"
       max="360"

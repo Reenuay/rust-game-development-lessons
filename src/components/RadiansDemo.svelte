@@ -179,7 +179,7 @@
   </p>
 
   <div class="controls" style={`max-width: ${width}px;`}>
-    <NumberField label="angle" bind:value={angle} min="0" max="360" step="1" />
+    <NumberField label="angle°" bind:value={angle} min="0" max="360" step="1" />
     <button type="button" class="straighten-button" onclick={toggleStraighten}>
       {straightened ? 'Свернуть' : 'Выпрямить'}
     </button>
@@ -270,6 +270,11 @@
   }
 
   .straighten-button {
+    /* Starlight's prose CSS adds margin-top between adjacent content
+       elements — NumberField's own <label> resets this on itself (see
+       the comment in that file), but a plain <button> next to it
+       still gets pushed down without the same reset. */
+    margin: 0;
     height: 1.75rem;
     padding: 0 0.75rem;
     border: 1.5px solid var(--sl-color-accent);
