@@ -44,7 +44,7 @@ async fn main() {
 
         // Точка на отрезке, определяемая t.
         let point = lerp(start, end, t);
-        draw_circle(point.x, point.y, 14.0, RED);
+        draw_circle(point.x, point.y, 14.0, SKYBLUE);
 
         next_frame().await;
     }

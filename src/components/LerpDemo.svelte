@@ -61,7 +61,7 @@ async fn main() {
       { field: 't', value: formatT(t) },
       `;
         let point = lerp(start, end, t);
-        draw_circle(point.x, point.y, 14.0, RED);
+        draw_circle(point.x, point.y, 14.0, SKYBLUE);
 
         next_frame().await;
     }
@@ -120,7 +120,7 @@ async fn main() {
   <WasmCanvas {name} {width} {height} bind:iframeEl />
 
   <p class="demo-instructions">
-    Двигай ползунок или впиши число — красная точка едет по отрезку:
+    Двигай ползунок или впиши число — синяя точка едет по отрезку:
     при <code>t = 0</code> она в начале, при <code>t = 1</code> — в
     конце, а между ними — пропорционально доле пути:
   </p>
