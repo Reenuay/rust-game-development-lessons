@@ -5,10 +5,11 @@
   // ScaleDemo.svelte. Gray vector with adjustable length/angle, a red
   // unit vector (fixed on-screen length, standing for length 1) drawn
   // over it in the same direction, and a red arc marking the angle
-  // between the x-axis and the vector. The numbers themselves live in
-  // a plain HTML readout under the SVG, not as in-drawing labels —
-  // packing x/y text right next to the lines made them collide with
-  // each other and with the axis at angles near 0°/180°/360°.
+  // between the x-axis and the vector. x/y labels live right on the
+  // drawing, placed along each vector's own direction (see
+  // grayLabelX/Y, redLabelX/Y below) rather than at a fixed spot, so
+  // they never collide with the axes or each other as angle sweeps
+  // through 0°/180°/360°.
   let { width = 720 } = $props();
 
   let length = $state(4);
@@ -36,10 +37,10 @@
 
   // SVG viewBox geometry — fixed internal units, scaled to fit `width`
   // via CSS.
-  const VW = 600;
-  const VH = 540;
-  const ORIGIN_X = 300;
-  const ORIGIN_Y = 270;
+  const VW = 800;
+  const VH = 640;
+  const ORIGIN_X = 400;
+  const ORIGIN_Y = 320;
   // How many pixels stand for "1" — the red vector is always exactly
   // this long, since it always has length 1.
   const PX_PER_UNIT = 40;
@@ -49,7 +50,7 @@
   let radians = $derived((angle * Math.PI) / 180);
 
   // The vector's own x, y — not pixels, the actual math values (length
-  // times cos/sin) — same numbers the readout below shows.
+  // times cos/sin) — same numbers the on-drawing labels show.
   let grayMathX = $derived(length * Math.cos(radians));
   let grayMathY = $derived(length * Math.sin(radians));
   let unitMathX = $derived(Math.cos(radians));
@@ -61,7 +62,7 @@
   let unitTipY = $derived(ORIGIN_Y + unitMathY * UNIT_PX);
 
   // The <line> itself is drawn a few pixels past the true tip (the one
-  // used for the readout and the projections above) — otherwise the
+  // used for the labels and the projections above) — otherwise the
   // line's own stroke width poked out past the arrowhead marker's
   // point, instead of the marker fully covering it. Purely visual:
   // the numbers shown always come from the real, un-extended tip.
@@ -86,6 +87,49 @@
       ? `M ${arcStartX} ${arcStartY} A ${ARC_RADIUS} ${ARC_RADIUS} 0 1 1 ${ORIGIN_X - ARC_RADIUS} ${ORIGIN_Y} A ${ARC_RADIUS} ${ARC_RADIUS} 0 1 1 ${arcStartX} ${arcStartY}`
       : `M ${arcStartX} ${arcStartY} A ${ARC_RADIUS} ${ARC_RADIUS} 0 ${arcLargeFlag} 1 ${arcEndX} ${arcEndY}`,
   );
+
+  // Gray label: further out along the vector's own direction, past its
+  // tip — never "always below", always where the vector itself points.
+  const GRAY_LABEL_GAP = 26;
+  let grayLabelDist = $derived(length * PX_PER_UNIT + GRAY_LABEL_GAP);
+  let grayLabelX = $derived(ORIGIN_X + dirX * grayLabelDist);
+  let grayLabelY = $derived(ORIGIN_Y + dirY * grayLabelDist);
+
+  // Text-anchor follows the same direction: a label sitting past a
+  // mostly-horizontal vector should grow away from it (start/end), not
+  // spill back across it (middle only for the near-vertical case).
+  function anchorFor(dx) {
+    if (dx > 0.15) return 'start';
+    if (dx < -0.15) return 'end';
+    return 'middle';
+  }
+  let grayLabelAnchor = $derived(anchorFor(dirX));
+
+  // Red label: offset sideways from the unit vector's tip — left when
+  // it points left, right when it points right. Unlike the gray label
+  // this never follows the vector out along its own ray: the unit
+  // vector is short, so "past the tip" would land right next to (or
+  // inside) the gray vector and arc.
+  const RED_LABEL_OFFSET = 34;
+  const RED_LABEL_VERTICAL_BIAS = 18;
+  let unitPointsRight = $derived(dirX >= 0);
+  let redLabelX = $derived(unitTipX + (unitPointsRight ? RED_LABEL_OFFSET : -RED_LABEL_OFFSET));
+  // A fixed nudge down (or up, once the vector points mostly upward) —
+  // without it, the label sat right on top of the x-axis (and the
+  // "angle" label next to the arc) whenever the vector was close to
+  // horizontal, i.e. angle near 0°/180°/360°.
+  let redLabelY = $derived(unitTipY + (dirY >= 0 ? RED_LABEL_VERTICAL_BIAS : -RED_LABEL_VERTICAL_BIAS));
+  let redLabelAnchor = $derived(unitPointsRight ? 'start' : 'end');
+
+  // Angle label: a short fixed identifier next to the arc — not a
+  // number (the angle field above already shows that), just "angle"
+  // pointing at what the arc means. Same clamped-bisector placement
+  // used for the (now removed) numeric version — still avoids sitting
+  // on the vector line itself as angle sweeps past 0°/180°/360°.
+  let angleLabelRadians = $derived((Math.max(24, Math.min(angle, 90)) / 2) * (Math.PI / 180));
+  const ANGLE_LABEL_RADIUS = ARC_RADIUS + 14;
+  let angleLabelX = $derived(ORIGIN_X + ANGLE_LABEL_RADIUS * Math.cos(angleLabelRadians));
+  let angleLabelY = $derived(ORIGIN_Y + ANGLE_LABEL_RADIUS * Math.sin(angleLabelRadians));
 </script>
 
 <div class="sincos-demo">
@@ -110,6 +154,13 @@
 
     <!-- Arc marking the angle between the x-axis and the vector. -->
     <path d={arcPath} class="arc-path" />
+    <text
+      x={angleLabelX}
+      y={angleLabelY}
+      class="angle-label"
+      text-anchor="middle"
+      data-pulse={highlightAngle ? '' : undefined}
+    >angle</text>
 
     <!-- Gray vector — adjustable length and angle. -->
     <line
@@ -120,6 +171,14 @@
       class="gray-line"
       marker-end="url(#sincos-arrow-gray)"
     />
+    <text
+      x={grayLabelX}
+      y={grayLabelY}
+      class="gray-label"
+      text-anchor={grayLabelAnchor}
+      dominant-baseline="middle"
+      data-pulse={highlightLength || highlightAngle ? '' : undefined}
+    >x={formatNum(grayMathX)}, y={formatNum(grayMathY)}</text>
 
     <!-- Unit vector — same origin, same direction, fixed on-screen
          length, because its length is always exactly 1. -->
@@ -131,6 +190,14 @@
       class="unit-line"
       marker-end="url(#sincos-arrow-red)"
     />
+    <text
+      x={redLabelX}
+      y={redLabelY}
+      class="unit-label"
+      text-anchor={redLabelAnchor}
+      dominant-baseline="middle"
+      data-pulse={highlightAngle ? '' : undefined}
+    >x={formatNum(unitMathX)}, y={formatNum(unitMathY)}</text>
 
     <circle cx={ORIGIN_X} cy={ORIGIN_Y} r="4" class="origin-dot" />
   </svg>
@@ -140,16 +207,6 @@
     вектор (длина ровно 1) в том же самом направлении. Пунктир от
     красного вектора к осям — его проекции на `x` и `y`.
   </p>
-
-  <div class="readout" style={`max-width: ${width}px;`}>
-    <span class="readout-gray" data-pulse={highlightLength || highlightAngle ? '' : undefined}>
-      серый: x={formatNum(grayMathX)}, y={formatNum(grayMathY)}
-    </span>
-    <span class="readout-unit" data-pulse={highlightAngle ? '' : undefined}>
-      единичный: x={formatNum(unitMathX)}, y={formatNum(unitMathY)}
-    </span>
-    <span class="readout-angle" data-pulse={highlightAngle ? '' : undefined}>угол: {angle}°</span>
-  </div>
 
   <div class="controls" style={`max-width: ${width}px;`}>
     <NumberField
@@ -230,23 +287,27 @@
     fill: var(--sl-color-text);
   }
 
-  .readout {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem 1.5rem;
-    margin: 0.5rem 0 0.75rem;
-    font-family: var(--__sl-font-mono, ui-monospace, monospace);
-    font-size: var(--sl-text-sm);
-  }
-
-  .readout-gray {
+  .gray-label {
+    fill: var(--sl-color-text);
     color: var(--sl-color-text);
+    font-size: 15px;
+    font-family: var(--__sl-font-mono, ui-monospace, monospace);
   }
 
-  .readout-unit,
-  .readout-angle {
+  .unit-label {
+    fill: #ef4444;
     color: #ef4444;
+    font-size: 15px;
     font-weight: 600;
+    font-family: var(--__sl-font-mono, ui-monospace, monospace);
+  }
+
+  .angle-label {
+    fill: #ef4444;
+    color: #ef4444;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: var(--__sl-font-mono, ui-monospace, monospace);
   }
 
   .controls {
