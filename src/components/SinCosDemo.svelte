@@ -142,8 +142,52 @@
   // arc's own starting point (always on the positive x-axis, angle=0),
   // rather than tracking the sweep — a position that follows the
   // current angle kept drifting onto the arc itself.
-  const ANGLE_LABEL_X = ORIGIN_X + ARC_RADIUS + 24;
+  const ANGLE_LABEL_X = ORIGIN_X + ARC_RADIUS + 14;
   const ANGLE_LABEL_Y = ORIGIN_Y - 10;
+
+  // Background plates behind each label, so a label that ends up sitting
+  // on top of the gray vector (this happens by design for the gray label
+  // itself once the vector is near-horizontal, see grayLabelLift above)
+  // fully covers the line behind it instead of the line cutting through
+  // the text. Sized from the label's own rendered bounding box — exact,
+  // unlike guessing a width from character count — so it always hugs the
+  // real text regardless of how many digits happen to be showing.
+  let grayLabelEl = $state(null);
+  let unitLabelEl = $state(null);
+  let angleLabelEl = $state(null);
+  let grayLabelBox = $state(null);
+  let unitLabelBox = $state(null);
+  let angleLabelBox = $state(null);
+
+  const LABEL_BG_PAD_X = 4;
+  const LABEL_BG_PAD_Y = 2;
+
+  function measure(el) {
+    return el ? el.getBBox() : null;
+  }
+
+  $effect(() => {
+    // Re-measure whenever the text or its position changes.
+    grayLabelX;
+    grayLabelY;
+    grayLabelAnchor;
+    formatNum(grayMathX);
+    formatNum(grayMathY);
+    grayLabelBox = measure(grayLabelEl);
+  });
+
+  $effect(() => {
+    redLabelX;
+    redLabelY;
+    redLabelAnchor;
+    formatNum(unitMathX);
+    formatNum(unitMathY);
+    unitLabelBox = measure(unitLabelEl);
+  });
+
+  $effect(() => {
+    angleLabelBox = measure(angleLabelEl);
+  });
 </script>
 
 <div class="sincos-demo">
@@ -168,7 +212,18 @@
 
     <!-- Arc marking the angle between the x-axis and the vector. -->
     <path d={arcPath} class="arc-path" />
+    {#if angleLabelBox}
+      <rect
+        x={angleLabelBox.x - LABEL_BG_PAD_X}
+        y={angleLabelBox.y - LABEL_BG_PAD_Y}
+        width={angleLabelBox.width + LABEL_BG_PAD_X * 2}
+        height={angleLabelBox.height + LABEL_BG_PAD_Y * 2}
+        rx="4"
+        class="label-bg"
+      />
+    {/if}
     <text
+      bind:this={angleLabelEl}
       x={ANGLE_LABEL_X}
       y={ANGLE_LABEL_Y}
       class="angle-label"
@@ -185,7 +240,18 @@
       class="gray-line"
       marker-end="url(#sincos-arrow-gray)"
     />
+    {#if grayLabelBox}
+      <rect
+        x={grayLabelBox.x - LABEL_BG_PAD_X}
+        y={grayLabelBox.y - LABEL_BG_PAD_Y}
+        width={grayLabelBox.width + LABEL_BG_PAD_X * 2}
+        height={grayLabelBox.height + LABEL_BG_PAD_Y * 2}
+        rx="4"
+        class="label-bg"
+      />
+    {/if}
     <text
+      bind:this={grayLabelEl}
       x={grayLabelX}
       y={grayLabelY}
       class="gray-label"
@@ -204,7 +270,18 @@
       class="unit-line"
       marker-end="url(#sincos-arrow-red)"
     />
+    {#if unitLabelBox}
+      <rect
+        x={unitLabelBox.x - LABEL_BG_PAD_X}
+        y={unitLabelBox.y - LABEL_BG_PAD_Y}
+        width={unitLabelBox.width + LABEL_BG_PAD_X * 2}
+        height={unitLabelBox.height + LABEL_BG_PAD_Y * 2}
+        rx="4"
+        class="label-bg"
+      />
+    {/if}
     <text
+      bind:this={unitLabelEl}
       x={redLabelX}
       y={redLabelY}
       class="unit-label"
@@ -289,7 +366,7 @@
 
   .unit-line {
     stroke: #ef4444;
-    stroke-width: 1.5;
+    stroke-width: 2;
     stroke-linecap: round;
   }
 
@@ -299,6 +376,10 @@
 
   .origin-dot {
     fill: var(--sl-color-text);
+  }
+
+  .label-bg {
+    fill: var(--sl-color-bg);
   }
 
   .gray-label {
