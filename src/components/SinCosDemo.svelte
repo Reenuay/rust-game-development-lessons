@@ -90,10 +90,18 @@
 
   // Gray label: further out along the vector's own direction, past its
   // tip — never "always below", always where the vector itself points.
+  // Once the vector gets close to horizontal, though, that ray-based
+  // spot sits right where the line (or the x-axis right behind it)
+  // passes through the text — lift the label above the line there, by
+  // more the more horizontal the vector is, tapering back to no lift
+  // at all once it's steep enough that the ray already clears on its
+  // own.
   const GRAY_LABEL_GAP = 26;
+  const GRAY_LABEL_MAX_LIFT = 20;
   let grayLabelDist = $derived(length * PX_PER_UNIT + GRAY_LABEL_GAP);
+  let grayLabelLift = $derived(Math.max(0, 1 - Math.abs(dirY) * 2) * GRAY_LABEL_MAX_LIFT);
   let grayLabelX = $derived(ORIGIN_X + dirX * grayLabelDist);
-  let grayLabelY = $derived(ORIGIN_Y + dirY * grayLabelDist);
+  let grayLabelY = $derived(ORIGIN_Y + dirY * grayLabelDist - grayLabelLift);
 
   // Text-anchor follows the same direction: a label sitting past a
   // mostly-horizontal vector should grow away from it (start/end), not
@@ -112,24 +120,30 @@
   // inside) the gray vector and arc.
   const RED_LABEL_OFFSET = 34;
   const RED_LABEL_VERTICAL_BIAS = 18;
+  // The more horizontal the vector, the closer its tip sits to the
+  // "angle" label's own spot (just right of the arc, right above the
+  // x-axis) — so the nearer to horizontal, the harder this pushes the
+  // label away from the axis, on top of the fixed bias below.
+  const RED_LABEL_EXTRA_BIAS = 24;
   let unitPointsRight = $derived(dirX >= 0);
   let redLabelX = $derived(unitTipX + (unitPointsRight ? RED_LABEL_OFFSET : -RED_LABEL_OFFSET));
-  // A fixed nudge down (or up, once the vector points mostly upward) —
-  // without it, the label sat right on top of the x-axis (and the
-  // "angle" label next to the arc) whenever the vector was close to
-  // horizontal, i.e. angle near 0°/180°/360°.
-  let redLabelY = $derived(unitTipY + (dirY >= 0 ? RED_LABEL_VERTICAL_BIAS : -RED_LABEL_VERTICAL_BIAS));
+  let redLabelHorizontalness = $derived(Math.max(0, Math.abs(dirX) - 0.3) / 0.7);
+  let redLabelBias = $derived(RED_LABEL_VERTICAL_BIAS + redLabelHorizontalness * RED_LABEL_EXTRA_BIAS);
+  // A nudge down (or up, once the vector points mostly upward) — without
+  // it, the label sat right on top of the x-axis (and the "angle" label
+  // next to the arc) whenever the vector was close to horizontal, i.e.
+  // angle near 0°/180°/360°.
+  let redLabelY = $derived(unitTipY + (dirY >= 0 ? redLabelBias : -redLabelBias));
   let redLabelAnchor = $derived(unitPointsRight ? 'start' : 'end');
 
   // Angle label: a short fixed identifier next to the arc — not a
   // number (the angle field above already shows that), just "angle"
-  // pointing at what the arc means. Same clamped-bisector placement
-  // used for the (now removed) numeric version — still avoids sitting
-  // on the vector line itself as angle sweeps past 0°/180°/360°.
-  let angleLabelRadians = $derived((Math.max(24, Math.min(angle, 90)) / 2) * (Math.PI / 180));
-  const ANGLE_LABEL_RADIUS = ARC_RADIUS + 14;
-  let angleLabelX = $derived(ORIGIN_X + ANGLE_LABEL_RADIUS * Math.cos(angleLabelRadians));
-  let angleLabelY = $derived(ORIGIN_Y + ANGLE_LABEL_RADIUS * Math.sin(angleLabelRadians));
+  // pointing at what the arc means. Fixed just to the right of the
+  // arc's own starting point (always on the positive x-axis, angle=0),
+  // rather than tracking the sweep — a position that follows the
+  // current angle kept drifting onto the arc itself.
+  const ANGLE_LABEL_X = ORIGIN_X + ARC_RADIUS + 24;
+  const ANGLE_LABEL_Y = ORIGIN_Y - 10;
 </script>
 
 <div class="sincos-demo">
@@ -155,10 +169,10 @@
     <!-- Arc marking the angle between the x-axis and the vector. -->
     <path d={arcPath} class="arc-path" />
     <text
-      x={angleLabelX}
-      y={angleLabelY}
+      x={ANGLE_LABEL_X}
+      y={ANGLE_LABEL_Y}
       class="angle-label"
-      text-anchor="middle"
+      text-anchor="start"
       data-pulse={highlightAngle ? '' : undefined}
     >angle</text>
 
