@@ -45,7 +45,6 @@
   const PX_PER_UNIT = 40;
   const UNIT_PX = PX_PER_UNIT;
   const ARC_RADIUS = 28;
-  const AXIS_LINE_LENGTH = 60;
 
   let radians = $derived((angle * Math.PI) / 180);
 
@@ -73,17 +72,26 @@
 
 <div class="sincos-demo">
   <svg class="sincos-svg" viewBox={`0 0 ${VW} ${VH}`} style={`max-width: ${width}px;`}>
-    <!-- x-axis reference — just shows where the angle is measured from. -->
-    <line
-      x1={ORIGIN_X}
-      y1={ORIGIN_Y}
-      x2={ORIGIN_X + AXIS_LINE_LENGTH}
-      y2={ORIGIN_Y}
-      class="axis-line"
-    />
+    <defs>
+      <marker id="sincos-arrow-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+        <path d="M0,0 L10,5 L0,10 Z" class="gray-arrow" />
+      </marker>
+      <marker id="sincos-arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+        <path d="M0,0 L10,5 L0,10 Z" class="unit-arrow" />
+      </marker>
+    </defs>
+
+    <!-- Full x/y axes through the origin — just orientation, not measured values. -->
+    <line x1="0" y1={ORIGIN_Y} x2={VW} y2={ORIGIN_Y} class="axis-line" />
+    <line x1={ORIGIN_X} y1="0" x2={ORIGIN_X} y2={VH} class="axis-line" />
+
+    <!-- Unit vector's projection onto each axis — drawn first, so the
+         vectors and their arrowheads sit on top of them. -->
+    <line x1={unitTipX} y1={unitTipY} x2={unitTipX} y2={ORIGIN_Y} class="projection-line" />
+    <line x1={unitTipX} y1={unitTipY} x2={ORIGIN_X} y2={unitTipY} class="projection-line" />
 
     <!-- Arc marking the angle between the x-axis and the vector. -->
-    <path d={arcPath} class="arc-path" data-pulse={highlightAngle ? '' : undefined} />
+    <path d={arcPath} class="arc-path" />
 
     <!-- Gray vector — adjustable length and angle. -->
     <line
@@ -92,9 +100,8 @@
       x2={grayTipX}
       y2={grayTipY}
       class="gray-line"
-      data-pulse={highlightLength || highlightAngle ? '' : undefined}
+      marker-end="url(#sincos-arrow-gray)"
     />
-    <circle cx={grayTipX} cy={grayTipY} r="6" class="gray-dot" />
 
     <!-- Unit vector — same origin, same direction, fixed on-screen
          length, because its length is always exactly 1. -->
@@ -104,16 +111,16 @@
       x2={unitTipX}
       y2={unitTipY}
       class="unit-line"
-      data-pulse={highlightAngle ? '' : undefined}
+      marker-end="url(#sincos-arrow-red)"
     />
-    <circle cx={unitTipX} cy={unitTipY} r="5" class="unit-dot" />
 
     <circle cx={ORIGIN_X} cy={ORIGIN_Y} r="4" class="origin-dot" />
   </svg>
 
   <p class="demo-legend">
     Серый — вектор с задаваемыми длиной и углом. Красный — единичный
-    вектор (длина ровно 1) в том же самом направлении.
+    вектор (длина ровно 1) в том же самом направлении. Пунктир от
+    красного вектора к осям — его проекции на `x` и `y`.
   </p>
 
   <div class="readout" style={`max-width: ${width}px;`}>
@@ -168,6 +175,13 @@
     stroke-dasharray: 4 4;
   }
 
+  .projection-line {
+    stroke: #ef4444;
+    stroke-width: 1.5;
+    stroke-dasharray: 3 3;
+    opacity: 0.6;
+  }
+
   .arc-path {
     fill: none;
     stroke: #ef4444;
@@ -180,7 +194,7 @@
     stroke-linecap: round;
   }
 
-  .gray-dot {
+  .gray-arrow {
     fill: var(--sl-color-gray-2);
   }
 
@@ -190,7 +204,7 @@
     stroke-linecap: round;
   }
 
-  .unit-dot {
+  .unit-arrow {
     fill: #ef4444;
   }
 

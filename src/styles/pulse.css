@@ -1,9 +1,13 @@
 /* Shared "this number is connected to that field" cue — hovering or
-   focusing an input pulses (scale + colored glow, breathing loop) the
+   focusing an input pulses (colored glow, breathing loop) the
    matching value wherever it's shown, whether that's an SVG <text>
-   (ScaleDemo) or a highlighted code token (CodePanel). One definition
-   so every demo that needs it reuses the exact same look instead of
-   each carrying its own copy of these rules.
+   (ScaleDemo, SinCosDemo) or a highlighted code token (CodePanel). One
+   definition so every demo that needs it reuses the exact same look
+   instead of each carrying its own copy of these rules.
+
+   Glow only, no scale — scaling text/tokens in and out read as
+   distracting jitter rather than a highlight, especially with several
+   pulsing at once.
 
    A data attribute, not a class: Expressive Code's own CSS only
    colors a code token span when it has no `class` attribute at all
@@ -17,20 +21,13 @@
 @keyframes demo-pulse {
   0%,
   100% {
-    transform: scale(1);
     filter: drop-shadow(0 0 0 currentColor);
   }
   50% {
-    transform: scale(1.18);
     filter: drop-shadow(0 0 5px currentColor);
   }
 }
 
 [data-pulse] {
-  /* Needed for SVG <text>: without it, scale() transforms from the
-     SVG viewport's origin (0,0) instead of the element's own center.
-     Harmless (ignored) on ordinary HTML elements. */
-  transform-box: fill-box;
-  transform-origin: center;
   animation: demo-pulse 1.2s ease-in-out infinite;
 }
