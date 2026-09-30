@@ -98,7 +98,7 @@ async fn main() {
         // пикселей в направлении взгляда.
         let eye_x = player.x + direction_x * 25.0;
         let eye_y = player.y + direction_y * 25.0;
-        draw_circle(eye_x, eye_y, 8.0, WHITE);
+        draw_circle(eye_x, eye_y, 8.0, DARKBLUE);
 
         next_frame().await;
     }
