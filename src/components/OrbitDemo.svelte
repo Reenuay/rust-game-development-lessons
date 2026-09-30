@@ -41,6 +41,12 @@ fn orbit(center: Point, radius: f32, angle: f32) -> Point {
     }
 }
 
+// speed одна и та же на каждом кадре, поэтому это константа (как в
+// уроке «Константы»), а не переменная внутри loop.
+const SPEED: f32 = `,
+      { field: 'speed', value: formatSpeed(speed) },
+      `;
+
 #[macroquad::main("Вращение вокруг точки")]
 async fn main() {
     // Угол растёт каждый кадр — mut и вне loop, чтобы помнить прошлый кадр.
@@ -59,10 +65,7 @@ async fn main() {
         draw_circle(point.x, point.y, 16.0, YELLOW);
 
         // Угол растёт на фиксированную угловую скорость каждый кадр.
-        let speed: f32 = `,
-      { field: 'speed', value: formatSpeed(speed) },
-      `;
-        angle += speed;
+        angle += SPEED;
 
         next_frame().await;
     }

@@ -44,6 +44,12 @@ fn lerp(from: Point, to: Point, t: f32) -> Point {
     }
 }
 
+// t одна и та же на каждом кадре, поэтому это константа (как в уроке
+// «Константы»), а не переменная внутри loop.
+const T: f32 = `,
+      { field: 't', value: formatT(t) },
+      `;
+
 #[macroquad::main("Линейная интерполяция")]
 async fn main() {
     // Начало и конец отрезка — по умолчанию на одной высоте.
@@ -71,10 +77,7 @@ async fn main() {
         draw_circle(end.x, end.y, 10.0, WHITE);
 
         // Точка на отрезке, определяемая t.
-        let t: f32 = `,
-      { field: 't', value: formatT(t) },
-      `;
-        let point = lerp(start, end, t);
+        let point = lerp(start, end, T);
         draw_circle(point.x, point.y, 14.0, SKYBLUE);
 
         next_frame().await;

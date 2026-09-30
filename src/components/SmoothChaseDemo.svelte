@@ -41,6 +41,12 @@ fn lerp(from: Point, to: Point, t: f32) -> Point {
     }
 }
 
+// factor одна и та же на каждом кадре, поэтому это константа (как в
+// уроке «Константы»), а не переменная внутри loop.
+const FACTOR: f32 = `,
+      { field: 'factor', value: formatFactor(factor) },
+      `;
+
 #[macroquad::main("Плавная погоня")]
 async fn main() {
     // Кружок стартует в центре экрана. mut и вне loop — позиция должна
@@ -56,10 +62,7 @@ async fn main() {
 
         // Каждый кадр сдвигаемся на factor от текущего расстояния до
         // курсора: далеко от цели шаг большой, у цели — маленький.
-        let factor: f32 = `,
-      { field: 'factor', value: formatFactor(factor) },
-      `;
-        position = lerp(position, mouse, factor);
+        position = lerp(position, mouse, FACTOR);
 
         draw_circle(position.x, position.y, 30.0, YELLOW);
 
