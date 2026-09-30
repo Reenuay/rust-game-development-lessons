@@ -452,6 +452,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "structs"
+version = "0.1.0"
+dependencies = [
+ "macroquad",
+]
+
+[[package]]
 name = "tap"
 version = "0.1.0"
 dependencies = [
