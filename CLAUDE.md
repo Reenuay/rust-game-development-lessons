@@ -16,6 +16,14 @@ GitHub Pages under base `/rust-game-development-lessons/`.
   lesson we..." — always a real markdown link to the specific lesson, e.g.
   `[«Клик мышью»](../mouse-click/)`. Every existing lesson already does
   this; keep it that way.
+- **Never grammatically decline a lesson's title inside a link.** Keep the
+  bracket text exactly as it is in the target lesson's own `title:`
+  frontmatter — nominative case, word for word — even when the surrounding
+  sentence would normally call for a different case. Write «в уроке
+  [«Свои структуры»](../structs/)», not «в [«Своих структурах»](../structs/)»;
+  add «урок»/«уроке» (or rephrase the sentence) as needed to keep the
+  Russian grammatical around the undeclined title, rather than bending the
+  title itself.
 - **Never show the same code twice on one page.** If a lesson's demo is an
   interactive Svelte component with its own live code panel (see below),
   that panel *is* the code example — don't also add a static "## Код"

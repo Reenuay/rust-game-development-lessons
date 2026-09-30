@@ -11,7 +11,7 @@ struct Circle {
     color: Color,
 }
 
-// Своя функция: расстояние между двумя точками, как в «Расстоянии».
+// Своя функция: расстояние между двумя точками, как в уроке «Расстояние».
 fn distance(from_x: f32, from_y: f32, to_x: f32, to_y: f32) -> f32 {
     let dx = to_x - from_x;
     let dy = to_y - from_y;
