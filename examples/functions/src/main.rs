@@ -54,7 +54,7 @@ async fn main() {
         // полетит пуля, если сейчас выстрелить.
         let (direction_x, direction_y) = direction(center_x, center_y, mouse_x, mouse_y);
 
-        // Глазик — точка плюс вектор (как в «Точке плюс векторе»):
+        // Глазик — точка плюс вектор (как в уроке «Точка плюс вектор»):
         // центр турели плюс направление, растянутое на 25 пикселей.
         let eye_x = center_x + direction_x * 25.0;
         let eye_y = center_y + direction_y * 25.0;
@@ -70,7 +70,7 @@ async fn main() {
         }
 
         // Пуля летит своим зафиксированным направлением, не подстраиваясь
-        // под курсор — в отличие от «Погони за мышью».
+        // под курсор — в отличие от урока «Погоня за мышью».
         bullet_x += bullet_direction_x * speed;
         bullet_y += bullet_direction_y * speed;
 

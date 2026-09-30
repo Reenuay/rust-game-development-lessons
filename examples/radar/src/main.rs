@@ -24,7 +24,7 @@ async fn main() {
         // Координаты курсора.
         let (mouse_x, mouse_y) = mouse_position();
 
-        // Расстояние от турели до курсора (как в «Расстоянии»).
+        // Расстояние от турели до курсора (как в уроке «Расстояние»).
         let dx = mouse_x - center_x;
         let dy = mouse_y - center_y;
         let distance = (dx * dx + dy * dy).sqrt();

@@ -23,14 +23,14 @@ async fn main() {
         // Координаты курсора.
         let (mouse_x, mouse_y) = mouse_position();
 
-        // Вектор от кружка к курсору (как в «Расстоянии»).
+        // Вектор от кружка к курсору (как в уроке «Расстояние»).
         let dx = mouse_x - x;
         let dy = mouse_y - y;
         let distance = (dx * dx + dy * dy).sqrt();
 
         // Курсор не точно на кружке — есть куда шагать.
         if distance > 0.0 {
-            // Направление на курсор, длиной ровно 1 (как в «Направлении»).
+            // Направление на курсор, длиной ровно 1 (как в уроке «Направление»).
             let direction_x = dx / distance;
             let direction_y = dy / distance;
 
