@@ -65,8 +65,14 @@
   let arcEndX = $derived(ORIGIN_X + ARC_RADIUS * Math.cos(radians));
   let arcEndY = $derived(ORIGIN_Y + ARC_RADIUS * Math.sin(radians));
   let arcLargeFlag = $derived(angle > 180 ? 1 : 0);
+  // At exactly 360° the start and end points of the arc coincide —
+  // SVG's arc command can't draw a full circle from identical
+  // endpoints, it just renders nothing. Draw the full sweep as two
+  // half-circles instead, which does work.
   let arcPath = $derived(
-    `M ${arcStartX} ${arcStartY} A ${ARC_RADIUS} ${ARC_RADIUS} 0 ${arcLargeFlag} 1 ${arcEndX} ${arcEndY}`,
+    angle >= 360
+      ? `M ${arcStartX} ${arcStartY} A ${ARC_RADIUS} ${ARC_RADIUS} 0 1 1 ${ORIGIN_X - ARC_RADIUS} ${ORIGIN_Y} A ${ARC_RADIUS} ${ARC_RADIUS} 0 1 1 ${arcStartX} ${arcStartY}`
+      : `M ${arcStartX} ${arcStartY} A ${ARC_RADIUS} ${ARC_RADIUS} 0 ${arcLargeFlag} 1 ${arcEndX} ${arcEndY}`,
   );
 </script>
 
