@@ -23,12 +23,12 @@ async fn main() {
         let w = screen_width();
         let h = screen_height();
 
-        // Четыре кнопки в ряд — у каждой своя доля ширины экрана.
+        // Четыре кнопки в ряд — у каждой своя доля ширины экрана и свой радиус.
         let buttons = [
-            Circle { x: w * 0.2, y: h * 0.5, radius: 180.0, color: YELLOW },
-            Circle { x: w * 0.4, y: h * 0.5, radius: 180.0, color: RED },
-            Circle { x: w * 0.6, y: h * 0.5, radius: 180.0, color: GREEN },
-            Circle { x: w * 0.8, y: h * 0.5, radius: 180.0, color: PURPLE },
+            Circle { x: w * 0.2, y: h * 0.5, radius: 140.0, color: YELLOW },
+            Circle { x: w * 0.4, y: h * 0.5, radius: 200.0, color: RED },
+            Circle { x: w * 0.6, y: h * 0.5, radius: 160.0, color: GREEN },
+            Circle { x: w * 0.8, y: h * 0.5, radius: 220.0, color: PURPLE },
         ];
 
         let (mouse_x, mouse_y) = mouse_position();
