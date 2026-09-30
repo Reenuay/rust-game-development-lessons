@@ -1,14 +1,11 @@
 <script>
   import WasmCanvas from './WasmCanvas.svelte';
   import NumberField from './NumberField.svelte';
-  import RangeSlider from './RangeSlider.svelte';
   import CodePanel from './CodePanel.svelte';
   import { loadRustHighlighter, highlightRust, plainCodeHtml, markedCode } from '../lib/rustHighlight.js';
 
   let { name, width = 720, height = 540 } = $props();
 
-  // Slider and number field both bind to this same value, so dragging
-  // one and typing in the other stay in sync automatically.
   let speed = $state(0.02);
   let highlightField = $state(null);
   let built = $derived(codeFor(speed));
@@ -131,15 +128,6 @@ async fn main() {
   </p>
 
   <div class="controls" style={`max-width: ${width}px;`}>
-    <RangeSlider
-      label="speed"
-      bind:value={speed}
-      min="0.002"
-      max="0.1"
-      step="0.002"
-      onfocus={() => (highlightField = 'speed')}
-      onblur={() => (highlightField = null)}
-    />
     <NumberField
       label="speed"
       bind:value={speed}
