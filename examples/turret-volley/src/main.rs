@@ -16,12 +16,22 @@ struct Bullet {
     direction_y: f32,
 }
 
+// Своя функция: по двум точкам считает направление от первой ко второй,
+// как в уроке «Свои функции».
+fn direction(from_x: f32, from_y: f32, to_x: f32, to_y: f32) -> (f32, f32) {
+    let dx = to_x - from_x;
+    let dy = to_y - from_y;
+    let distance = (dx * dx + dy * dy).sqrt();
+
+    if distance > 0.0 {
+        (dx / distance, dy / distance)
+    } else {
+        (1.0, 0.0)
+    }
+}
+
 #[macroquad::main("Турель стреляет очередью")]
 async fn main() {
-    // Направление глазика по умолчанию — ещё до первого движения мыши.
-    let mut direction_x = 1.0;
-    let mut direction_y = 0.0;
-
     // Список пуль — сначала пустой.
     let mut bullets: Vec<Bullet> = Vec::new();
 
@@ -37,16 +47,8 @@ async fn main() {
         // Координаты мыши.
         let (mouse_x, mouse_y) = mouse_position();
 
-        // Направление от турели к мыши, как в уроке «Направление».
-        let dx = mouse_x - center_x;
-        let dy = mouse_y - center_y;
-        let distance = (dx * dx + dy * dy).sqrt();
-
-        // Мышь не точно в центре — можно обновить направление.
-        if distance > 0.0 {
-            direction_x = dx / distance;
-            direction_y = dy / distance;
-        }
+        // Куда смотрит турель — направление от центра к мыши.
+        let (direction_x, direction_y) = direction(center_x, center_y, mouse_x, mouse_y);
 
         // Глазик — центр турели плюс направление, растянутое на 25 пикселей.
         let eye_x = center_x + direction_x * 25.0;
