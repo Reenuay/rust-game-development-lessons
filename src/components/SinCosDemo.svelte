@@ -60,6 +60,18 @@
   let unitTipX = $derived(ORIGIN_X + unitMathX * UNIT_PX);
   let unitTipY = $derived(ORIGIN_Y + unitMathY * UNIT_PX);
 
+  // The <line> itself is drawn a few pixels past the true tip (the one
+  // used for the readout and the projections above) — otherwise the
+  // line's own stroke width poked out past the arrowhead marker's
+  // point, instead of the marker fully covering it. Purely visual:
+  // the numbers shown always come from the real, un-extended tip.
+  let dirX = $derived(Math.cos(radians));
+  let dirY = $derived(Math.sin(radians));
+  let grayLineEndX = $derived(grayTipX + dirX * 6);
+  let grayLineEndY = $derived(grayTipY + dirY * 6);
+  let unitLineEndX = $derived(unitTipX + dirX * 5);
+  let unitLineEndY = $derived(unitTipY + dirY * 5);
+
   let arcStartX = $derived(ORIGIN_X + ARC_RADIUS);
   let arcStartY = ORIGIN_Y;
   let arcEndX = $derived(ORIGIN_X + ARC_RADIUS * Math.cos(radians));
@@ -103,8 +115,8 @@
     <line
       x1={ORIGIN_X}
       y1={ORIGIN_Y}
-      x2={grayTipX}
-      y2={grayTipY}
+      x2={grayLineEndX}
+      y2={grayLineEndY}
       class="gray-line"
       marker-end="url(#sincos-arrow-gray)"
     />
@@ -114,8 +126,8 @@
     <line
       x1={ORIGIN_X}
       y1={ORIGIN_Y}
-      x2={unitTipX}
-      y2={unitTipY}
+      x2={unitLineEndX}
+      y2={unitLineEndY}
       class="unit-line"
       marker-end="url(#sincos-arrow-red)"
     />
@@ -196,7 +208,7 @@
 
   .gray-line {
     stroke: var(--sl-color-gray-2);
-    stroke-width: 4;
+    stroke-width: 2;
     stroke-linecap: round;
   }
 
@@ -206,7 +218,7 @@
 
   .unit-line {
     stroke: #ef4444;
-    stroke-width: 3;
+    stroke-width: 1.5;
     stroke-linecap: round;
   }
 
