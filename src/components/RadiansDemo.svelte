@@ -43,6 +43,15 @@
   const anchorX = ORIGIN_X + RADIUS_PX;
   const anchorY = ORIGIN_Y;
 
+  // Ruler the straightened segment lands on — whole units from 0 up to
+  // 2π, plus π and 2π marked specially since the lesson text calls out
+  // those two values by name.
+  const RULER_Y = ORIGIN_Y + 120;
+  const MAX_TICK = 6;
+  const ticks = Array.from({ length: MAX_TICK + 1 }, (_, n) => ({ n, x: anchorX + RADIUS_PX * n }));
+  const piX = anchorX + RADIUS_PX * Math.PI;
+  const twoPiX = anchorX + RADIUS_PX * 2 * Math.PI;
+
   // How many sample points make up the arc. Spaced evenly by angle, at
   // a fixed density per full turn — generous enough that even a full
   // 360° sweep reads as a smooth curve rather than a faceted polygon,
@@ -57,6 +66,9 @@
   // measured along the curve or along the straight line. That's what
   // keeps the total length the same throughout the animation, instead
   // of the line coming out shorter or longer than the arc it replaced.
+  // The straightened position sits on the ruler (RULER_Y), not at the
+  // circle's own height, so the arc visibly comes down and lies flat
+  // along it rather than just floating straight in place.
   let arcPoints = $derived.by(() => {
     const points = [];
     for (let i = 0; i < pointCount; i++) {
@@ -65,7 +77,7 @@
         curvedX: ORIGIN_X + RADIUS_PX * Math.cos(s),
         curvedY: ORIGIN_Y + RADIUS_PX * Math.sin(s),
         straightX: anchorX + RADIUS_PX * s,
-        straightY: anchorY,
+        straightY: RULER_Y,
       });
     }
     return points;
@@ -117,15 +129,6 @@
   $effect(() => {
     return () => cancelAnimationFrame(animationFrame);
   });
-
-  // Ruler under the straightened segment — whole units from 0 up to
-  // just past 2π, plus π and 2π marked specially since the lesson text
-  // calls out those two values by name.
-  const RULER_Y = ORIGIN_Y + 120;
-  const MAX_TICK = 6;
-  const ticks = Array.from({ length: MAX_TICK + 1 }, (_, n) => ({ n, x: anchorX + RADIUS_PX * n }));
-  const piX = anchorX + RADIUS_PX * Math.PI;
-  const twoPiX = anchorX + RADIUS_PX * 2 * Math.PI;
 </script>
 
 <div class="radians-demo">
@@ -136,7 +139,7 @@
     <!-- Ruler baseline + ticks — only relevant once the arc starts
          straightening out, so it fades in together with it. -->
     <g style={`opacity: ${t}`}>
-      <line x1={anchorX} y1={RULER_Y} x2={anchorX + RADIUS_PX * MAX_TICK} y2={RULER_Y} class="ruler-line" />
+      <line x1={anchorX} y1={RULER_Y} x2={twoPiX} y2={RULER_Y} class="ruler-line" />
       {#each ticks as tick (tick.n)}
         <line x1={tick.x} y1={RULER_Y - 6} x2={tick.x} y2={RULER_Y + 6} class="ruler-tick" />
         <text x={tick.x} y={RULER_Y + 22} class="ruler-label" text-anchor="middle">{tick.n}</text>
@@ -162,7 +165,7 @@
     <!-- The arc itself, morphing into a straight segment. -->
     <polyline points={polylinePoints} class="arc-line" />
 
-    <text x={lastPoint.x + 14} y={lastPoint.y} class="length-label" dominant-baseline="middle"
+    <text x={lastPoint.x + 14} y={lastPoint.y - 16} class="length-label" dominant-baseline="middle"
       >{formatNum(radians)}</text
     >
 
