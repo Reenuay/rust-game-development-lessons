@@ -4,6 +4,11 @@ Guidance for Claude Code when working in this repository — a Russian-language
 site teaching general programming through Rust + macroquad, deployed to
 GitHub Pages under base `/rust-game-development-lessons/`.
 
+## Chat language
+
+Reply to the user in Russian, regardless of what language they write in or
+what language a tool result, file, or code comment happens to be in.
+
 ## Writing lessons
 
 - Simplest possible language. Lessons target beginners; avoid unexplained
