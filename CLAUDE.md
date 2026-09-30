@@ -15,6 +15,16 @@ what language a tool result, file, or code comment happens to be in.
   jargon and unnecessary technical detail that isn't the point of the
   current lesson (e.g. don't mention a type like `(f32, f32)` if the lesson
   isn't about types).
+- **Write like you'd say it out loud, not like documentation.** Don't stack
+  dry, compressed constructions into one breath — "X из урока Y — тире,
+  двоеточие: список через запятую" reads like a spec, not like someone
+  explaining something. Say it the way a person would actually say it:
+  "Мы уже писали функции, и выглядели они вот так: имя, потом скобки, а
+  внутри через запятую — аргументы." Closer to plain spoken register than
+  to dry enumeration — but simpler is not the same as terser: don't swing
+  the other way into precious or overly clever wording either. If a
+  sentence reads like a checklist stitched together with dashes and colons,
+  slow down and say it plainly instead.
 - Keep it concise — explain the one idea the lesson is about, not everything
   adjacent to it.
 - **Never reference a past lesson without linking it.** No "in a previous
