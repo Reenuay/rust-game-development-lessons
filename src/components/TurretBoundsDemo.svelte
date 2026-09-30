@@ -98,11 +98,13 @@ async fn main() {
             });
         }
 
-        // Видимая граница обзора — меньше экрана на MARGIN со всех сторон.
+        // Левый верхний угол рамки — сдвинут от (0, 0) вглубь экрана на MARGIN.
         let view_x = MARGIN;
         let view_y = MARGIN;
+        // Минус MARGIN с каждой из двух противоположных сторон.
         let view_width = screen_width() - MARGIN * 2.0;
         let view_height = screen_height() - MARGIN * 2.0;
+        // Рисуем только контур рамки, чтобы не закрывать пули и турель.
         draw_rectangle_lines(view_x, view_y, view_width, view_height, 8.0, LIGHTGRAY);
 
         // Тело турели.
@@ -110,17 +112,25 @@ async fn main() {
         // Глазик — смотрит на мышь.
         draw_circle(eye_x, eye_y, 10.0, WHITE);
 
-        // Двигаем каждую пулю и оставляем только те, что ещё внутри границы.
+        // Новый пустой список — создаётся заново на каждом кадре, специально
+        // для пуль, которые стоит оставить.
         let mut kept_bullets: Vec<Bullet> = Vec::new();
+        // Забираем старый список bullets в собственность — второй раз им
+        // воспользоваться уже не выйдет.
         for mut bullet in bullets {
+            // Двигаем пулю в её направлении.
             bullet.x += bullet.direction_x * SPEED;
             bullet.y += bullet.direction_y * SPEED;
 
+            // Пуля ещё внутри рамки — рисуем и переносим её в новый список.
             if inside_rectangle(bullet.x, bullet.y, view_x, view_y, view_width, view_height) {
                 draw_circle(bullet.x, bullet.y, 8.0, YELLOW);
                 kept_bullets.push(bullet);
             }
+            // Иначе пуля просто никуда не переносится и пропадает вместе
+            // со старым списком, когда цикл закончится.
         }
+        // На следующий кадр bullets станет тем, что мы только что собрали.
         bullets = kept_bullets;
 
         next_frame().await;

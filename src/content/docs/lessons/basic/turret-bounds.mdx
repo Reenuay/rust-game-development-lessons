@@ -22,6 +22,7 @@ import TurretBoundsDemo from '../../../../components/TurretBoundsDemo.svelte';
 `margin` внутрь угол рамки — это просто `(margin, margin)`:
 
 ```rust
+// Левый верхний угол рамки — сдвинут от (0, 0) вглубь экрана на margin.
 let view_x = margin;
 let view_y = margin;
 ```
@@ -32,6 +33,7 @@ let view_y = margin;
 дважды:
 
 ```rust
+// Минус margin с каждой из двух противоположных сторон.
 let view_width = screen_width() - margin * 2.0;
 let view_height = screen_height() - margin * 2.0;
 ```
@@ -39,6 +41,7 @@ let view_height = screen_height() - margin * 2.0;
 Эти четыре числа и задают рамку, которую рисуем контуром:
 
 ```rust
+// Рисуем только контур рамки, чтобы не закрывать пули и турель.
 draw_rectangle_lines(view_x, view_y, view_width, view_height, 8.0, LIGHTGRAY);
 ```
 
@@ -93,19 +96,36 @@ fn inside_rectangle(x: f32, y: f32, rect_x: f32, rect_y: f32, rect_width: f32, r
 изначально пустой список. Пули, которые не добавили никуда, просто
 забываются вместе со старым списком.
 
+Важно, где именно объявлены оба списка. `bullets` объявлен **до**
+`loop`, поэтому живёт всё время, пока работает программа, — ровно как
+`x`/`y` в уроке [«Где живёт переменная»](../scope/). А
+`kept_bullets` объявлен **внутри** `loop`: каждый новый кадр это
+заново пустой список, который наполняется по новой и в конце кадра
+просто исчезает — остаётся только то, что успело попасть в `bullets`
+через присваивание.
+
 ```rust
+// Новый пустой список — создаётся заново на каждом кадре, специально
+// для пуль, которые стоит оставить.
 let mut kept_bullets: Vec<Bullet> = Vec::new();
 
+// Забираем старый список bullets в собственность — второй раз им
+// воспользоваться уже не выйдет.
 for mut bullet in bullets {
+    // Двигаем пулю в её направлении.
     bullet.x += bullet.direction_x * SPEED;
     bullet.y += bullet.direction_y * SPEED;
 
+    // Пуля ещё внутри рамки — рисуем и переносим её в новый список.
     if inside_rectangle(bullet.x, bullet.y, view_x, view_y, view_width, view_height) {
         draw_circle(bullet.x, bullet.y, 8.0, YELLOW);
         kept_bullets.push(bullet);
     }
+    // Иначе пуля просто никуда не переносится и пропадает вместе со
+    // старым списком, когда цикл закончится.
 }
 
+// На следующий кадр bullets станет тем, что мы только что собрали.
 bullets = kept_bullets;
 ```
 
