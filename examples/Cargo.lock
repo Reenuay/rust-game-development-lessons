@@ -432,6 +432,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rect-buttons"
+version = "0.1.0"
+dependencies = [
+ "macroquad",
+]
+
+[[package]]
 name = "rectangle"
 version = "0.1.0"
 dependencies = [
