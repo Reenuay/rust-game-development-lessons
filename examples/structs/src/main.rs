@@ -11,6 +11,18 @@ struct Circle {
     color: Color,
 }
 
+// Своя функция: расстояние между двумя точками, как в «Расстоянии».
+fn distance(from_x: f32, from_y: f32, to_x: f32, to_y: f32) -> f32 {
+    let dx = to_x - from_x;
+    let dy = to_y - from_y;
+    (dx * dx + dy * dy).sqrt()
+}
+
+// Своя функция: случайный цвет из списка COLORS.
+fn random_color() -> Color {
+    COLORS[rand::gen_range(0, COLORS.len())]
+}
+
 #[macroquad::main("Свои структуры")]
 async fn main() {
     // Список уже нарисованных кружков — сначала пустой.
@@ -32,12 +44,8 @@ async fn main() {
             drag_y = mouse_y;
         }
 
-        // Расстояние от точки начала до мыши — как в «Направлении».
-        let dx = mouse_x - drag_x;
-        let dy = mouse_y - drag_y;
-        let distance = (dx * dx + dy * dy).sqrt();
         // Радиус не может быть меньше 5 — иначе кружок пропадёт из виду.
-        let radius = distance.max(5.0);
+        let radius = distance(drag_x, drag_y, mouse_x, mouse_y).max(5.0);
 
         // Кнопка зажата — показываем, каким получится кружок.
         if is_mouse_button_down(MouseButton::Left) {
@@ -46,9 +54,7 @@ async fn main() {
 
         // Кнопку только что отпустили — сохраняем готовый кружок.
         if is_mouse_button_released(MouseButton::Left) {
-            // Случайный цвет, как в «Разноцветных кружках».
-            let index = rand::gen_range(0, COLORS.len());
-            circles.push(Circle { x: drag_x, y: drag_y, radius, color: COLORS[index] });
+            circles.push(Circle { x: drag_x, y: drag_y, radius, color: random_color() });
         }
 
         // Рисуем все уже сохранённые кружки.
