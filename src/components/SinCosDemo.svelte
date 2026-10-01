@@ -340,6 +340,17 @@
     fill: var(--sl-color-text);
   }
 
+  .gray-label,
+  .unit-label {
+    /* A background-colored outline behind the text, drawn before the
+       fill (paint-order), so the numbers read cleanly over the axes,
+       the arc, or the vectors instead of blending into them. */
+    paint-order: stroke;
+    stroke: var(--sl-color-bg);
+    stroke-width: 5px;
+    stroke-linejoin: round;
+  }
+
   .gray-label {
     fill: var(--sl-color-text);
     color: var(--sl-color-text);

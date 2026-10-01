@@ -173,8 +173,10 @@
   </svg>
 
   <p class="demo-legend">
-    Дуга единичной окружности, которую стягивает угол. Кнопка ниже
-    разворачивает её в прямую линию той же длины — это и есть угол в
+    Две толстые серые линии выходят из центра окружности и образуют
+    между собой угол. Этот угол отрезает от окружности кусочек края —
+    это и называется дугой, она выделена красным. Кнопка ниже
+    разворачивает дугу в прямую линию той же длины — это и есть угол в
     радианах.
   </p>
 
@@ -230,6 +232,13 @@
     font-size: 16px;
     font-weight: 600;
     font-family: var(--__sl-font-mono, ui-monospace, monospace);
+    /* A background-colored outline behind the text, drawn before the
+       fill (paint-order), so the number reads cleanly over the arc or
+       rays instead of blending into them. */
+    paint-order: stroke;
+    stroke: var(--sl-color-bg);
+    stroke-width: 5px;
+    stroke-linejoin: round;
   }
 
   .ruler-line {
