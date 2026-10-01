@@ -5,7 +5,7 @@ sidebar:
   order: 2
 ---
 
-import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 Rust ставится через официальный установщик `rustup`. Скачать его можно на
 сайте [rustup.rs](https://rustup.rs).
@@ -14,44 +14,21 @@ Rust ставится через официальный установщик `ru
 <TabItem label="Windows">
 
 Rust на Windows использует линковщик (программу, которая собирает
-скомпилированный код в готовый `.exe` файл). Ниже — вариант с
-линковщиком GNU: он ставится прямо через сам rustup, без отдельных
-установщиков, и весит в разы меньше Visual Studio.
+скомпилированный код в готовый `.exe` файл) — он идёт не вместе с
+Rust, а отдельно, в составе Build Tools для Visual Studio.
 
 1. Открой [rustup.rs](https://rustup.rs) и скачай файл `rustup-init.exe`.
 2. Запусти скачанный файл двойным щелчком.
 3. Откроется чёрное окно терминала с текстом — нажми `Enter`, чтобы
    согласиться с установкой по умолчанию.
-4. Дождись надписи `Rust is installed now. Great!`.
-5. Открой терминал и введи две команды:
-
-   ```sh
-   rustup toolchain install stable-x86_64-pc-windows-gnu
-   rustup default stable-x86_64-pc-windows-gnu
-   ```
-
-   Это переключит Rust на линковщик GNU — он скачается и поставится
-   сам.
-6. Закрой окно.
-
-<Aside type="tip" title="Уже стоит Visual Studio?">
-
-Если на компьютере уже установлена Visual Studio (или её Build Tools),
-можно использовать линковщик из неё вместо GNU — тогда команды из шага
-5 выше вводить не нужно:
-
-1. Открой страницу [Build Tools для Visual Studio](https://visualstudio.microsoft.com/ru/visual-cpp-build-tools/)
+4. Дождись надписи `Rust is installed now. Great!` и закрой окно.
+5. Открой страницу [Build Tools для Visual Studio](https://visualstudio.microsoft.com/ru/visual-cpp-build-tools/)
    и скачай установщик.
-2. Запусти скачанный файл. Откроется окно с большим списком компонентов
+6. Запусти скачанный файл. Откроется окно с большим списком компонентов
    — поставь галочку на **"Разработка классических приложений на C++"**
    (Desktop development with C++) и нажми **"Установить"**.
-3. Дождись окончания установки — это может занять несколько минут,
+7. Дождись окончания установки — это может занять несколько минут,
    скачивается довольно много данных. По завершении можно закрыть окно.
-
-Rust по умолчанию сам найдёт и будет использовать линковщик Visual
-Studio, если он есть.
-
-</Aside>
 
 </TabItem>
 <TabItem label="macOS">
@@ -101,22 +78,15 @@ rustc --version
 ## Ошибка `linker 'link.exe' not found` (Windows)
 
 Если при `cargo run` появляется ошибка `linker 'link.exe' not found` —
-значит, Rust уже поставлен, но пропущен шаг 5 из инструкции выше.
-Ставить Rust заново не нужно, есть два варианта:
+значит, Rust уже поставлен, но не поставлены Build Tools для Visual
+Studio из инструкции выше. Ставить Rust заново не нужно — нужно только
+поставить их:
 
-- **Переключиться на линковщик GNU** — он весит гораздо меньше
-  Visual Studio и ставится без отдельного установщика. Введи в
-  терминале:
+1. Зайди на страницу [Build Tools для Visual Studio](https://visualstudio.microsoft.com/ru/visual-cpp-build-tools/)
+   и скачай установщик.
+2. Запусти его, поставь галочку на **"Разработка классических
+   приложений на C++"** (Desktop development with C++) и нажми
+   **"Установить"**.
+3. Дождись окончания установки.
 
-  ```sh
-  rustup toolchain install stable-x86_64-pc-windows-gnu
-  rustup default stable-x86_64-pc-windows-gnu
-  ```
-
-- **Или поставить Build Tools для Visual Studio.** Зайди на страницу
-  [Build Tools для Visual Studio](https://visualstudio.microsoft.com/ru/visual-cpp-build-tools/),
-  скачай и запусти установщик, поставь галочку на **"Разработка
-  классических приложений на C++"** и нажми **"Установить"**.
-
-После любого из вариантов открой терминал заново и попробуй `cargo run`
-ещё раз.
+После этого открой терминал заново и попробуй `cargo run` ещё раз.
