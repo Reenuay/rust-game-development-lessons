@@ -72,13 +72,13 @@ async fn main() {
         }
 
         // Тело игрока.
-        draw_circle(player.x, player.y, 30.0, YELLOW);
+        draw_circle(player.x, player.y, 75.0, YELLOW);
 
-        // Глазик — как у турели: точка плюс вектор, растянутый на 25
+        // Глазик — как у турели: точка плюс вектор, растянутый на 62.5
         // пикселей в направлении взгляда.
-        let eye_x = player.x + direction_x * 25.0;
-        let eye_y = player.y + direction_y * 25.0;
-        draw_circle(eye_x, eye_y, 8.0, DARKBLUE);
+        let eye_x = player.x + direction_x * 62.5;
+        let eye_y = player.y + direction_y * 62.5;
+        draw_circle(eye_x, eye_y, 20.0, DARKBLUE);
 
         next_frame().await;
     }

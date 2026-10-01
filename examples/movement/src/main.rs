@@ -30,7 +30,7 @@ async fn main() {
             x += SPEED;
         }
 
-        draw_circle(x, y, 100.0, YELLOW);
+        draw_circle(x, y, 75.0, YELLOW);
 
         next_frame().await;
     }
