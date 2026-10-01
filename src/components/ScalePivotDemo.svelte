@@ -105,9 +105,19 @@
 
   // Right panel: scales the absolute sum directly — A itself gets
   // dragged into the multiplication along with B, which is the bug.
+  // The bug multiplies the whole sum — but (ax + bx) * k is the same
+  // number as ax * k + bx * k, so it's exactly as if A and B had both
+  // been scaled too, not just some abstract "final answer". Drawing
+  // it that way (scaled A from the origin, scaled B stacked on its
+  // tip) is what actually happens, not just a inconvenient coincidence
+  // with the dashed sum line.
   let rightScale = $derived(1 + (SCALE - 1) * ease(progress));
-  let rightSumX = $derived((ax + bx) * rightScale);
-  let rightSumY = $derived((ay + by) * rightScale);
+  let rightAx = $derived(ax * rightScale);
+  let rightAy = $derived(ay * rightScale);
+  let rightBx = $derived(bx * rightScale);
+  let rightBy = $derived(by * rightScale);
+  let rightSumX = $derived(rightAx + rightBx);
+  let rightSumY = $derived(rightAy + rightBy);
 
   let animationFrame;
 
@@ -164,7 +174,8 @@
   let leftBBaseTip = $derived(toTip(bBaseX, bBaseY));
   let leftBTip = $derived(toTip(leftBx, leftBy));
   let rightSumTip = $derived(toTip(rightSumX, rightSumY));
-  let rightBTip = $derived(toTip(ax + bx, ay + by));
+  let rightATip = $derived(toTip(rightAx, rightAy));
+  let rightBTip = $derived(toTip(rightSumX, rightSumY));
 </script>
 
 <div class="scale-pivot-demo">
@@ -232,12 +243,12 @@
 
         <line x1={ORIGIN_X} y1={ORIGIN_Y} x2={rightSumTip.x} y2={rightSumTip.y} class="sum-line" marker-end="url(#pivot-arrow-sum-right)" />
 
-        <!-- A and B themselves never change here — only the dashed
-             sum line reacts, because the bug multiplies the sum
-             directly instead of touching B on its own. -->
-        <line x1={ORIGIN_X} y1={ORIGIN_Y} x2={aTip.x} y2={aTip.y} class="vector-a" marker-end="url(#pivot-arrow-a-right)" />
+        <!-- Both A and B stretch here too — the bug multiplies the
+             whole sum, which is the same as multiplying A and B each
+             on their own and keeping them stacked tip to tail. -->
+        <line x1={ORIGIN_X} y1={ORIGIN_Y} x2={rightATip.x} y2={rightATip.y} class="vector-a" marker-end="url(#pivot-arrow-a-right)" />
 
-        <line x1={aTip.x} y1={aTip.y} x2={rightBTip.x} y2={rightBTip.y} class="vector-b" marker-end="url(#pivot-arrow-b-right)" />
+        <line x1={rightATip.x} y1={rightATip.y} x2={rightBTip.x} y2={rightBTip.y} class="vector-b" marker-end="url(#pivot-arrow-b-right)" />
 
         <circle cx={ORIGIN_X} cy={ORIGIN_Y} r="4" class="origin-dot" />
       </svg>
