@@ -245,8 +245,8 @@
   </div>
 
   <p class="demo-legend">
-    Серый — вектор A, тащи его мышью (в любой из двух картинок, вторая
-    повторяет за первой). Бледно-голубой — вектор B, фиксированный,
+    Серый — вектор A, тащи его мышью за кончик в левой картинке —
+    правая повторяет за ней. Бледно-голубой — вектор B, фиксированный,
     растёт из кончика A. Зелёный пунктир — их сумма: место, где
     на самом деле окажется то, что мы рисуем. Кнопка увеличивает B в
     {SCALE} раза двумя разными способами одновременно.
@@ -271,6 +271,12 @@
   }
 
   .panel {
+    /* Starlight's prose CSS adds margin-top to any element that
+       isn't the first child of its parent (for normal paragraph
+       spacing) — it doesn't know these two <div>s are a side-by-side
+       row, not stacked text, so without this the second panel sits
+       lower than the first. */
+    margin: 0;
     flex: 1 1 200px;
     min-width: 200px;
   }
