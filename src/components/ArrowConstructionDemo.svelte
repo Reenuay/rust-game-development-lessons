@@ -1,72 +1,34 @@
 <script>
   import NumberField from './NumberField.svelte';
 
-  // Pure math illustration, no macroquad/WASM. A draggable vector from
-  // the origin (same drag pattern as Rotate90Demo/ScalePivotDemo), with
-  // a triangular arrowhead always drawn at its tip. A toggle reveals
-  // the construction behind that triangle: step back along the
-  // direction, then two perpendicular "wings" from that point — the
-  // same three ingredients the lesson's draw_arrow() uses.
+  // A fixed vertical vector, so "step back" is literally "down" and
+  // the two wings are literally "left" and "right" — no rotation math
+  // needed to follow along. Pressing the button animates the actual
+  // construction: the shaft retracts from the tip down to `back`,
+  // then a stub grows left to `wing1`, then right to `wing2`, then
+  // both wings sweep up to the tip and the triangle fills in.
+  // Pressing it again reverses the same animation, back to a plain line.
   let { width = 560 } = $props();
 
-  const VW = 640;
-  const VH = 460;
-  const ORIGIN_X = 160;
-  const ORIGIN_Y = 230;
-  const PX_PER_UNIT = 20;
-  const MAX_UNIT = 12;
+  const VW = 480;
+  const VH = 420;
+  const ORIGIN_X = 240;
+  const ORIGIN_Y = 360;
+  const TIP_X = 240;
+  const TIP_Y = 80;
 
-  let vx = $state(9);
-  let vy = $state(-6);
-  let headLength = $state(30);
-  let headWidth = $state(15);
+  let headLength = $state(50);
+  let headWidth = $state(30);
+  let buildProgress = $state(0); // 0 = plain line, 1 = fully built triangle
   let showConstruction = $state(false);
-  let dragging = $state(false);
-  let svgEl = $state(null);
-
-  function clampUnit(value) {
-    return Math.max(-MAX_UNIT, Math.min(MAX_UNIT, Math.round(value)));
-  }
-
-  function pushOutIfZero(x, y) {
-    if (x !== 0 || y !== 0) return { x, y };
-    return { x: 1, y: 0 };
-  }
-
-  function updateFromPointer(clientX, clientY) {
-    if (!svgEl) return;
-    const rect = svgEl.getBoundingClientRect();
-    const mathX = (clientX - rect.left) * (VW / rect.width);
-    const mathY = (clientY - rect.top) * (VH / rect.height);
-    const next = pushOutIfZero(
-      clampUnit((mathX - ORIGIN_X) / PX_PER_UNIT),
-      clampUnit((mathY - ORIGIN_Y) / PX_PER_UNIT),
-    );
-    vx = next.x;
-    vy = next.y;
-  }
-
-  function onHandlePointerDown(event) {
-    dragging = true;
-    event.target.setPointerCapture(event.pointerId);
-    updateFromPointer(event.clientX, event.clientY);
-  }
-
-  function onHandlePointerMove(event) {
-    if (!dragging) return;
-    updateFromPointer(event.clientX, event.clientY);
-  }
-
-  function onHandlePointerUp() {
-    dragging = false;
-  }
+  let generation = 0;
 
   function clampHeadLength(value) {
-    return Math.round(Math.min(60, Math.max(8, value)));
+    return Math.round(Math.min(120, Math.max(20, value)));
   }
 
   function clampHeadWidth(value) {
-    return Math.round(Math.min(30, Math.max(4, value)));
+    return Math.round(Math.min(70, Math.max(10, value)));
   }
 
   $effect(() => {
@@ -74,78 +36,111 @@
     headWidth = clampHeadWidth(headWidth);
   });
 
-  let tipX = $derived(ORIGIN_X + vx * PX_PER_UNIT);
-  let tipY = $derived(ORIGIN_Y + vy * PX_PER_UNIT);
-  let vectorLengthPx = $derived(Math.hypot(vx, vy) * PX_PER_UNIT);
-  let dirX = $derived((vx * PX_PER_UNIT) / vectorLengthPx);
-  let dirY = $derived((vy * PX_PER_UNIT) / vectorLengthPx);
+  // The four stages share the one animated value — each owns a quarter
+  // of it, so they play in order and reverse in order for free.
+  let p1 = $derived(Math.min(1, Math.max(0, buildProgress / 0.25))); // tip -> back
+  let p2 = $derived(Math.min(1, Math.max(0, (buildProgress - 0.25) / 0.25))); // back -> wing1 (left)
+  let p3 = $derived(Math.min(1, Math.max(0, (buildProgress - 0.5) / 0.25))); // back -> wing2 (right)
+  let p4 = $derived(Math.min(1, Math.max(0, (buildProgress - 0.75) / 0.25))); // wings -> tip, fill
 
-  // Never let the head eat into more of the shaft than is actually
-  // there — otherwise dragging the tip in close would flip the
-  // triangle past the origin.
-  let effectiveHeadLength = $derived(Math.min(headLength, vectorLengthPx * 0.9));
+  let backX = $derived(TIP_X);
+  let backY = $derived(TIP_Y + headLength);
+  let wing1X = $derived(backX - headWidth); // left
+  let wing1Y = $derived(backY);
+  let wing2X = $derived(backX + headWidth); // right
+  let wing2Y = $derived(backY);
 
-  let backX = $derived(tipX - dirX * effectiveHeadLength);
-  let backY = $derived(tipY - dirY * effectiveHeadLength);
+  function lerp(a, b, t) {
+    return a + (b - a) * t;
+  }
 
-  // Perpendicular to the direction — the 90° trick from «Поворот на 90°».
-  let perpX = $derived(-dirY);
-  let perpY = $derived(dirX);
+  // The shaft's own end point — slides from the tip down to `back` as
+  // stage 1 plays, then stays put.
+  let shaftEndX = $derived(TIP_X);
+  let shaftEndY = $derived(lerp(TIP_Y, backY, p1));
 
-  let wing1X = $derived(backX + perpX * headWidth);
-  let wing1Y = $derived(backY + perpY * headWidth);
-  let wing2X = $derived(backX - perpX * headWidth);
-  let wing2Y = $derived(backY - perpY * headWidth);
+  let leftStubX = $derived(lerp(backX, wing1X, p2));
+  let leftStubY = $derived(lerp(backY, wing1Y, p2));
+  let rightStubX = $derived(lerp(backX, wing2X, p3));
+  let rightStubY = $derived(lerp(backY, wing2Y, p3));
+
+  let leftEdgeX = $derived(lerp(wing1X, TIP_X, p4));
+  let leftEdgeY = $derived(lerp(wing1Y, TIP_Y, p4));
+  let rightEdgeX = $derived(lerp(wing2X, TIP_X, p4));
+  let rightEdgeY = $derived(lerp(wing2Y, TIP_Y, p4));
+
+  function ease(x) {
+    return x < 0.5 ? 2 * x * x : 1 - (-2 * x + 2) ** 2 / 2;
+  }
+
+  function animateValue(getCurrent, setValue, target, duration, myGeneration) {
+    return new Promise((resolve) => {
+      const start = getCurrent();
+      const startTime = performance.now();
+
+      function step(now) {
+        if (myGeneration !== generation) {
+          resolve();
+          return;
+        }
+        const progress = duration > 0 ? Math.min(1, (now - startTime) / duration) : 1;
+        setValue(start + (target - start) * ease(progress));
+        if (progress < 1) {
+          requestAnimationFrame(step);
+        } else {
+          resolve();
+        }
+      }
+
+      requestAnimationFrame(step);
+    });
+  }
 
   function toggleConstruction() {
+    generation += 1;
+    const myGeneration = generation;
     showConstruction = !showConstruction;
+    const target = showConstruction ? 1 : 0;
+    animateValue(() => buildProgress, (v) => (buildProgress = v), target, 1400, myGeneration);
   }
 </script>
 
 <div class="arrow-construction-demo">
-  <svg class="arrow-construction-svg" viewBox={`0 0 ${VW} ${VH}`} style={`max-width: ${width}px;`} bind:this={svgEl}>
-    <line x1="0" y1={ORIGIN_Y} x2={VW} y2={ORIGIN_Y} class="axis-line" />
-    <line x1={ORIGIN_X} y1="0" x2={ORIGIN_X} y2={VH} class="axis-line" />
+  <svg class="arrow-construction-svg" viewBox={`0 0 ${VW} ${VH}`} style={`max-width: ${width}px;`}>
+    <!-- Сам «тело» стрелки — тянется от начала до текущего конца. -->
+    <line x1={ORIGIN_X} y1={ORIGIN_Y} x2={shaftEndX} y2={shaftEndY} class="shaft-line" />
 
-    {#if showConstruction}
-      <circle cx={backX} cy={backY} r="4" class="back-dot" />
-      <text x={backX} y={backY - 12} class="back-label" text-anchor="middle">back</text>
-      <line x1={backX} y1={backY} x2={wing1X} y2={wing1Y} class="wing-line" />
-      <line x1={backX} y1={backY} x2={wing2X} y2={wing2Y} class="wing-line" />
-      <text x={wing1X} y={wing1Y - 8} class="wing-label" text-anchor="middle">wing1</text>
-      <text x={wing2X} y={wing2Y + 18} class="wing-label" text-anchor="middle">wing2</text>
+    {#if p2 > 0.001}
+      <line x1={backX} y1={backY} x2={leftStubX} y2={leftStubY} class="wing-line" />
+    {/if}
+    {#if p3 > 0.001}
+      <line x1={backX} y1={backY} x2={rightStubX} y2={rightStubY} class="wing-line" />
     {/if}
 
-    <!-- Shaft — only to `back`, same as the real draw_arrow(). -->
-    <line x1={ORIGIN_X} y1={ORIGIN_Y} x2={backX} y2={backY} class="shaft-line" />
+    {#if p4 > 0.001}
+      <line x1={wing1X} y1={wing1Y} x2={leftEdgeX} y2={leftEdgeY} class="wing-line" />
+      <line x1={wing2X} y1={wing2Y} x2={rightEdgeX} y2={rightEdgeY} class="wing-line" />
+      <polygon
+        points={`${TIP_X},${TIP_Y} ${wing1X},${wing1Y} ${wing2X},${wing2Y}`}
+        class="head-triangle"
+        style={`opacity: ${p4}`}
+      />
+    {/if}
 
-    <!-- The arrowhead itself, always visible. -->
-    <polygon points={`${tipX},${tipY} ${wing1X},${wing1Y} ${wing2X},${wing2Y}`} class="head-triangle" />
-
-    <circle
-      cx={tipX}
-      cy={tipY}
-      r="10"
-      class="drag-handle"
-      class:dragging
-      onpointerdown={onHandlePointerDown}
-      onpointermove={onHandlePointerMove}
-      onpointerup={onHandlePointerUp}
-      onpointercancel={onHandlePointerUp}
-    />
     <circle cx={ORIGIN_X} cy={ORIGIN_Y} r="4" class="origin-dot" />
   </svg>
 
   <p class="demo-legend">
-    Тащи кончик стрелки мышью. Кнопка ниже показывает, как устроен сам
-    наконечник: точка <code>back</code> — шаг назад от кончика вдоль
-    направления, а <code>wing1</code>/<code>wing2</code> — два
-    перпендикулярных отступа от неё в разные стороны.
+    Стрелка смотрит вертикально вверх — так направления видно сразу:
+    «назад» — это вниз, а крылья наконечника — влево и вправо. Кнопка
+    ниже проигрывает само построение: шаг назад до <code>back</code>,
+    потом крыло влево, потом вправо, а потом оба крыла соединяются с
+    кончиком — и получается треугольник.
   </p>
 
   <div class="controls" style={`max-width: ${width}px;`}>
-    <NumberField label="head_length" bind:value={headLength} min="8" max="60" step="1" />
-    <NumberField label="head_width" bind:value={headWidth} min="4" max="30" step="1" />
+    <NumberField label="head_length" bind:value={headLength} min="20" max="120" step="1" />
+    <NumberField label="head_width" bind:value={headWidth} min="10" max="70" step="1" />
     <button type="button" class="construction-button" onclick={toggleConstruction}>
       {showConstruction ? 'Скрыть построение' : 'Показать построение'}
     </button>
@@ -160,22 +155,15 @@
   .arrow-construction-svg {
     display: block;
     width: 100%;
-    touch-action: none;
   }
 
   .demo-legend {
     margin: 0.75rem 0;
   }
 
-  .axis-line {
-    stroke: var(--sl-color-gray-3);
-    stroke-width: 2;
-    stroke-dasharray: 4 4;
-  }
-
   .shaft-line {
     stroke: var(--sl-color-gray-2);
-    stroke-width: 3;
+    stroke-width: 4;
     stroke-linecap: round;
   }
 
@@ -184,49 +172,14 @@
     stroke: none;
   }
 
-  .back-dot {
-    fill: #7dd3fc;
-  }
-
-  .back-label {
-    fill: #7dd3fc;
-    font-size: 13px;
-    font-family: var(--__sl-font-mono, ui-monospace, monospace);
-    paint-order: stroke;
-    stroke: var(--sl-color-bg);
-    stroke-width: 4px;
-  }
-
   .wing-line {
     stroke: #7dd3fc;
-    stroke-width: 2;
-    stroke-dasharray: 3 3;
-  }
-
-  .wing-label {
-    fill: #7dd3fc;
-    font-size: 13px;
-    font-family: var(--__sl-font-mono, ui-monospace, monospace);
-    paint-order: stroke;
-    stroke: var(--sl-color-bg);
-    stroke-width: 4px;
+    stroke-width: 3;
+    stroke-linecap: round;
   }
 
   .origin-dot {
     fill: var(--sl-color-text);
-  }
-
-  .drag-handle {
-    fill: var(--sl-color-bg);
-    stroke: var(--sl-color-gray-2);
-    stroke-width: 2;
-    cursor: grab;
-    touch-action: none;
-  }
-
-  .drag-handle.dragging {
-    cursor: grabbing;
-    fill: var(--sl-color-gray-2);
   }
 
   .controls {

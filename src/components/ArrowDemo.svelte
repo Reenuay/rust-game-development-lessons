@@ -56,14 +56,27 @@ fn draw_arrow(from: Point, to: Point, head_length: f32, head_width: f32, color: 
     let perp_x = -direction_y;
     let perp_y = direction_x;
 
-    // Два «крыла» наконечника — по разные стороны от back.
-    let wing1 = vec2(back_x + perp_x * head_width, back_y + perp_y * head_width);
-    let wing2 = vec2(back_x - perp_x * head_width, back_y - perp_y * head_width);
+    // Два «крыла» наконечника — по разные стороны от back. Каждая
+    // координата — своя переменная, чтобы было видно, как она
+    // считается.
+    let wing1_x = back_x + perp_x * head_width;
+    let wing1_y = back_y + perp_y * head_width;
+    let wing2_x = back_x - perp_x * head_width;
+    let wing2_y = back_y - perp_y * head_width;
 
     // Тело стрелки — до back, а не до самого кончика, чтобы не вылезать
     // из-под наконечника.
     draw_line(from.x, from.y, back_x, back_y, 4.0, color);
-    draw_triangle(vec2(to.x, to.y), wing1, wing2, color);
+
+    // draw_triangle() в macroquad хочет точки в виде Vec2, а не просто
+    // x и y по отдельности — vec2() здесь просто упаковывает уже
+    // готовые координаты.
+    draw_triangle(
+        vec2(to.x, to.y),
+        vec2(wing1_x, wing1_y),
+        vec2(wing2_x, wing2_y),
+        color,
+    );
 }
 
 #[macroquad::main("Стрелки")]
