@@ -10,8 +10,11 @@
 
   let angle = $state(90);
   let straightened = $state(false);
-  // 0 = arc sitting on the circle, 1 = fully straightened out.
-  let t = $state(0);
+  // Phase 1 (pre-swing in place) and phase 2 (actual roll), each its
+  // own 0..1 progress — see the comment above `psi` below for why
+  // they're kept separate instead of one combined progress value.
+  let p1 = $state(0);
+  let p2 = $state(0);
 
   function clampAngle(value) {
     return Math.min(360, Math.max(0, Math.round(value)));
@@ -74,18 +77,19 @@
   // clockwise on top of that, ending at a fixed psi of 90° regardless
   // of the target angle — that's what makes the near ray land exactly
   // on the ruler's zero every time.
+  //
+  // p1 and p2 are driven by two separate, sequential animations (see
+  // runAnimation below) — each at the same fixed angular speed, so a
+  // bigger swing or a longer roll simply takes proportionally longer,
+  // instead of always cramming into the same total duration. Summing
+  // them (rather than branching on which phase is "current") works
+  // cleanly in both directions: whichever one isn't actively animating
+  // just sits at its boundary value (0 or 1) and contributes nothing.
   let psi1 = $derived(Math.PI / 2 - radians);
-  let phase1Share = $derived.by(() => {
-    const phase1Work = Math.abs(psi1);
-    const totalWork = phase1Work + radians;
-    return totalWork > 0 ? phase1Work / totalWork : 0;
-  });
-
-  let phase2Progress = $derived(t <= phase1Share ? 0 : (t - phase1Share) / Math.max(1 - phase1Share, 0.0001));
-  let psi = $derived(t <= phase1Share ? psi1 * (phase1Share > 0 ? t / phase1Share : 1) : psi1 + radians * phase2Progress);
+  let psi = $derived(psi1 * p1 + radians * p2);
 
   // The wheel only starts moving once phase 1's pre-swing is done.
-  let wheelCenterX = $derived(ORIGIN_X + RADIUS_PX * radians * phase2Progress);
+  let wheelCenterX = $derived(ORIGIN_X + RADIUS_PX * radians * p2);
 
   // A point at `localAngle` on the circle's own rim (measured the same
   // way as the resting arc) ends up here at the current point in the
@@ -103,7 +107,7 @@
   // rotation in place. During phase 2, the far end (closest to
   // touching down already, back at the end of phase 1) peels off
   // first, so the remaining arc shrinks from that end inward.
-  let remainingHighEnd = $derived(t <= phase1Share ? radians : Math.max(0, Math.min(radians, Math.PI / 2 - psi)));
+  let remainingHighEnd = $derived(p2 <= 0 ? radians : Math.max(0, Math.min(radians, Math.PI / 2 - psi)));
 
   // How many sample points make up the remaining arc on the wheel.
   // Spaced evenly by angle, at a fixed density per full turn —
@@ -136,43 +140,77 @@
   let ray1Point = $derived(wheelPoint(0));
   let ray2Point = $derived(wheelPoint(radians));
 
-  // The ruler appears the instant the animation starts (not a gradual
-  // fade), and the wheel itself only starts fading once phase 2 — the
-  // actual rolling — gets underway; nothing is "disappearing" yet
-  // during phase 1's in-place swing.
-  let rulerVisible = $derived(t > 0);
-  let wheelOpacity = $derived(t <= phase1Share ? 1 : 1 - phase2Progress);
+  // The ruler only appears once phase 1 (the in-place pre-swing) has
+  // actually finished — not the moment the button is pressed — and
+  // the wheel itself only starts fading once phase 2's rolling gets
+  // underway; nothing is "disappearing" yet during phase 1.
+  let rulerVisible = $derived(p1 >= 0.999);
+  let wheelOpacity = $derived(p2 <= 0 ? 1 : 1 - p2);
 
-  let animationFrame;
+  // Both phases turn the wheel at the same fixed angular speed, so a
+  // bigger pre-swing or a longer roll takes proportionally more time
+  // instead of always finishing in the same total duration — a 360°
+  // roll genuinely takes longer to watch than a 30° one.
+  const RADIANS_PER_MS = Math.PI / 900; // 180° swing/roll takes 900ms
 
-  // Animates t from its current value to `target` (0 or 1) — no tween
-  // library in this project, so a small requestAnimationFrame loop
-  // with a plain ease-in-out curve does the job.
-  function animateTo(target) {
-    cancelAnimationFrame(animationFrame);
-    const start = t;
-    const startTime = performance.now();
-    const duration = 700;
-
-    function step(now) {
-      const progress = Math.min(1, (now - startTime) / duration);
-      const eased = progress < 0.5 ? 2 * progress * progress : 1 - (-2 * progress + 2) ** 2 / 2;
-      t = start + (target - start) * eased;
-      if (progress < 1) {
-        animationFrame = requestAnimationFrame(step);
-      }
-    }
-
-    animationFrame = requestAnimationFrame(step);
+  function ease(x) {
+    return x < 0.5 ? 2 * x * x : 1 - (-2 * x + 2) ** 2 / 2;
   }
 
-  function toggleStraighten() {
+  // Bumped on every click; an in-flight animation checks it and stops
+  // updating (instead of fighting a newer one) once it no longer
+  // matches — same pattern as SinCosDemo's reveal sequence.
+  let generation = 0;
+
+  function animateValue(getCurrent, setValue, target, duration, myGeneration) {
+    return new Promise((resolve) => {
+      const start = getCurrent();
+      const startTime = performance.now();
+
+      function step(now) {
+        if (myGeneration !== generation) {
+          resolve();
+          return;
+        }
+        const progress = duration > 0 ? Math.min(1, (now - startTime) / duration) : 1;
+        setValue(start + (target - start) * ease(progress));
+        if (progress < 1) {
+          requestAnimationFrame(step);
+        } else {
+          resolve();
+        }
+      }
+
+      requestAnimationFrame(step);
+    });
+  }
+
+  async function toggleStraighten() {
+    generation += 1;
+    const myGeneration = generation;
     straightened = !straightened;
-    animateTo(straightened ? 1 : 0);
+
+    const duration1 = Math.abs(psi1) / RADIANS_PER_MS;
+    const duration2 = radians / RADIANS_PER_MS;
+
+    if (straightened) {
+      // Swing in place first, then roll — same order the lesson
+      // describes.
+      await animateValue(() => p1, (v) => (p1 = v), 1, duration1, myGeneration);
+      if (myGeneration !== generation) return;
+      await animateValue(() => p2, (v) => (p2 = v), 1, duration2, myGeneration);
+    } else {
+      // Roll back first, then swing back — the exact reverse order.
+      await animateValue(() => p2, (v) => (p2 = v), 0, duration2, myGeneration);
+      if (myGeneration !== generation) return;
+      await animateValue(() => p1, (v) => (p1 = v), 0, duration1, myGeneration);
+    }
   }
 
   $effect(() => {
-    return () => cancelAnimationFrame(animationFrame);
+    return () => {
+      generation += 1;
+    };
   });
 </script>
 
