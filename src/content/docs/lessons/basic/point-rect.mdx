@@ -79,7 +79,19 @@ if inside_rectangle(bullet_point, screen_rect) {
 
 ## То же самое с distance и direction
 
-`distance` тоже принимала четыре числа — две точки по отдельности:
+`distance` раньше тоже принимала четыре отдельных числа — две точки,
+разложенные по `x` и `y`, как в уроке [«Свои структуры»](../structs/):
+
+```rust
+fn distance(from_x: f32, from_y: f32, to_x: f32, to_y: f32) -> f32 {
+    let dx = to_x - from_x;
+    let dy = to_y - from_y;
+    (dx * dx + dy * dy).sqrt()
+}
+```
+
+Делаем с ней то же самое, что и с `inside_rectangle` выше, — вместо
+четырёх чисел принимаем две `Point`:
 
 ```rust
 fn distance(from: Point, to: Point) -> f32 {
@@ -89,9 +101,10 @@ fn distance(from: Point, to: Point) -> f32 {
 }
 ```
 
-С `direction` интереснее: раньше она принимала четыре числа и
-возвращала кортеж `(f32, f32)`. Теперь — две точки на входе, и
-**тоже `Point`** на выходе:
+С `direction` то же самое на входе: было четыре отдельных числа,
+станет две `Point`. Но раньше она ещё и возвращала кортеж `(f32,
+f32)` (как в уроке [«Свои функции»](../functions/)) — теперь на
+выходе тоже `Point`:
 
 ```rust
 fn direction(from: Point, to: Point) -> Point {
