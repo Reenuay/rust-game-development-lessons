@@ -29,6 +29,14 @@ what language a tool result, file, or code comment happens to be in.
   thing — "Сколько кружков нарисовать — 5." reads as a broken thought,
   not a sentence. Say what it actually is: "Иногда нужно просто что-то
   посчитать: сколько кружков нарисовать, сколько яблок в корзине."
+- **Never open a lesson with a flat "Хотим, чтобы X" / "Хотим X" / "Нужно
+  X" statement.** It reads like a spec's opening line, not like someone
+  talking to a beginner — "Хотим, чтобы вектор крутился" is exactly the
+  pattern to avoid. Open the way the better existing lessons do: direct,
+  conversational address — "Давай сделаем так, чтобы вектор крутился",
+  "Нарисуем пять кружков в ряд". Check the very first sentence of
+  whatever you write against this specifically; it's the single spot
+  that keeps sliding back into the dry phrasing.
 - Keep it concise — explain the one idea the lesson is about, not everything
   adjacent to it.
 - **Never reference a past lesson without linking it.** No "in a previous
