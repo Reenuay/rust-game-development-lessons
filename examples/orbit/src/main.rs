@@ -29,7 +29,7 @@ fn orbit(center: Point, radius: f32, angle: f32) -> Point {
     }
 }
 
-#[macroquad::main("Вращение вокруг точки")]
+#[macroquad::main("Спутник")]
 async fn main() {
     set_speed(0.02);
 

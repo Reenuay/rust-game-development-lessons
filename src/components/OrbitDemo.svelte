@@ -51,7 +51,7 @@ const SPEED: f32 = `,
       { field: 'speed', value: formatSpeed(speed) },
       `;
 
-#[macroquad::main("Вращение вокруг точки")]
+#[macroquad::main("Спутник")]
 async fn main() {
     // Угол растёт каждый кадр — mut и вне loop, чтобы помнить прошлый кадр.
     let mut angle: f32 = 0.0;
