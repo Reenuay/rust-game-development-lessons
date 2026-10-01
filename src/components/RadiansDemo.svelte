@@ -30,73 +30,87 @@
   const VW = 900;
   const VH = 430;
   const ORIGIN_X = 150;
-  const ORIGIN_Y = 230;
   // Pixels standing for the unit circle's radius, 1 — this is also how
-  // many pixels stand for "1 radian" once the arc is straightened, so
-  // the straightened length always matches the radians value.
+  // many pixels stand for "1 radian" once the circle rolls out flat,
+  // so the straightened length always matches the radians value.
   const RADIUS_PX = 85;
+  // The circle's center sits exactly RADIUS_PX above the ruler, so at
+  // rest it's already touching the ruler — like a wheel sitting on a
+  // road, ready to roll.
+  const RULER_Y = 350;
+  const ORIGIN_Y = RULER_Y - RADIUS_PX;
 
   let radians = $derived((angle * Math.PI) / 180);
 
   // The arc always starts at angle 0 — the circle's rightmost point —
-  // and that's also where the straightened segment starts from.
+  // and that's also where the straightened trail on the ruler starts.
   const anchorX = ORIGIN_X + RADIUS_PX;
-  const anchorY = ORIGIN_Y;
 
   // Ruler the straightened segment lands on — whole units from 0 up to
   // 2π, plus π and 2π marked specially since the lesson text calls out
   // those two values by name.
-  const RULER_Y = ORIGIN_Y + 120;
   const MAX_TICK = 6;
   const ticks = Array.from({ length: MAX_TICK + 1 }, (_, n) => ({ n, x: anchorX + RADIUS_PX * n }));
   const piX = anchorX + RADIUS_PX * Math.PI;
   const twoPiX = anchorX + RADIUS_PX * 2 * Math.PI;
 
-  // How many sample points make up the arc. Spaced evenly by angle, at
-  // a fixed density per full turn — generous enough that even a full
-  // 360° sweep reads as a smooth curve rather than a faceted polygon,
-  // but scaled down for small angles instead of always sampling the
-  // same fixed count regardless of how little arc there is to show.
-  const POINTS_PER_TURN = 72;
-  let pointCount = $derived(Math.max(2, Math.round((radians / (2 * Math.PI)) * POINTS_PER_TURN) + 1));
+  // How far the circle has rolled, in radians, at the current point in
+  // the animation — also how much of the arc has peeled onto the
+  // ruler. Rolling without slipping: the center moves right by exactly
+  // RADIUS_PX for every radian rolled, same formula as the arc length
+  // itself (radius × angle).
+  let rolled = $derived(radians * t);
+  let wheelCenterX = $derived(ORIGIN_X + RADIUS_PX * rolled);
 
-  // Each sample point carries both where it sits on the circle and
-  // where it lands once straightened — evenly spaced by angle, so the
-  // spacing between neighbors (in pixels) stays the same whether it's
-  // measured along the curve or along the straight line. That's what
-  // keeps the total length the same throughout the animation, instead
-  // of the line coming out shorter or longer than the arc it replaced.
-  // The straightened position sits on the ruler (RULER_Y), not at the
-  // circle's own height, so the arc visibly comes down and lies flat
-  // along it rather than just floating straight in place.
-  let arcPoints = $derived.by(() => {
+  // A point at `localAngle` on the circle's own rim (measured the same
+  // way as the resting arc) ends up here once the wheel has rolled —
+  // rotated by `rolled` together with the whole wheel, and carried
+  // along as the center translates.
+  function wheelPoint(localAngle) {
+    const worldAngle = localAngle + rolled;
+    return {
+      x: wheelCenterX + RADIUS_PX * Math.cos(worldAngle),
+      y: ORIGIN_Y + RADIUS_PX * Math.sin(worldAngle),
+    };
+  }
+
+  // How many sample points make up the remaining arc on the wheel.
+  // Spaced evenly by angle, at a fixed density per full turn —
+  // generous enough that even a full 360° sweep reads as a smooth
+  // curve rather than a faceted polygon, but scaled down for small
+  // angles instead of always sampling the same fixed count.
+  const POINTS_PER_TURN = 72;
+  let remainingSpan = $derived(radians * (1 - t));
+  let pointCount = $derived(Math.max(2, Math.round((remainingSpan / (2 * Math.PI)) * POINTS_PER_TURN) + 1));
+
+  // The part of the arc still "on the tire" — it hasn't touched the
+  // ruler yet. Shrinks from the near end (angle 0, the first bit to
+  // touch down as the wheel starts turning) while the far end (angle
+  // = radians) stays put in the wheel's own rotating frame, right up
+  // until there's nothing left.
+  let wheelArcPoints = $derived.by(() => {
     const points = [];
     for (let i = 0; i < pointCount; i++) {
-      const s = (i / (pointCount - 1)) * radians;
-      points.push({
-        curvedX: ORIGIN_X + RADIUS_PX * Math.cos(s),
-        curvedY: ORIGIN_Y + RADIUS_PX * Math.sin(s),
-        straightX: anchorX + RADIUS_PX * s,
-        straightY: RULER_Y,
-      });
+      const s = rolled + (i / (pointCount - 1)) * remainingSpan;
+      points.push(wheelPoint(s - rolled));
     }
     return points;
   });
 
-  // The actual points drawn right now — each one somewhere between its
-  // curved and straightened position, depending on t.
-  let morphedPoints = $derived(
-    arcPoints.map((p) => ({
-      x: p.curvedX + (p.straightX - p.curvedX) * t,
-      y: p.curvedY + (p.straightY - p.curvedY) * t,
-    })),
-  );
+  let wheelArcPolyline = $derived(wheelArcPoints.map((p) => `${p.x},${p.y}`).join(' '));
 
-  let polylinePoints = $derived(morphedPoints.map((p) => `${p.x},${p.y}`).join(' '));
+  // The straightened trail just grows along the ruler as the wheel
+  // rolls — no per-point morphing needed, its length always matches
+  // how far the wheel has rolled.
+  let trailEndX = $derived(anchorX + RADIUS_PX * rolled);
 
-  // The length readout sits right past the far end of the arc/segment,
-  // wherever that currently is.
-  let lastPoint = $derived(morphedPoints[morphedPoints.length - 1] ?? { x: anchorX, y: anchorY });
+  // The length readout sits just past the leading edge of the trail.
+  let labelX = $derived(trailEndX);
+  let labelY = RULER_Y;
+
+  // The two angle rays, rigidly attached to the wheel.
+  let ray1Point = $derived(wheelPoint(0));
+  let ray2Point = $derived(wheelPoint(radians));
 
   let animationFrame;
 
@@ -133,43 +147,41 @@
 
 <div class="radians-demo">
   <svg class="radians-svg" viewBox={`0 0 ${VW} ${VH}`} style={`max-width: ${width}px;`}>
-    <!-- Full unit circle, just for reference. -->
-    <circle cx={ORIGIN_X} cy={ORIGIN_Y} r={RADIUS_PX} class="circle-outline" />
+    <!-- The wheel — same circle as before, but it rolls to the right
+         as it unrolls, and fades away once its whole tire has peeled
+         off onto the ruler. -->
+    <circle cx={wheelCenterX} cy={ORIGIN_Y} r={RADIUS_PX} class="circle-outline" style={`opacity: ${1 - t}`} />
 
-    <!-- Ruler baseline + ticks — only relevant once the arc starts
-         straightening out, so it fades in together with it. -->
-    <g style={`opacity: ${t}`}>
-      <line x1={anchorX} y1={RULER_Y} x2={twoPiX} y2={RULER_Y} class="ruler-line" />
-      {#each ticks as tick (tick.n)}
-        <line x1={tick.x} y1={RULER_Y - 6} x2={tick.x} y2={RULER_Y + 6} class="ruler-tick" />
-        <text x={tick.x} y={RULER_Y + 22} class="ruler-label" text-anchor="middle">{tick.n}</text>
-      {/each}
-      <line x1={piX} y1={RULER_Y - 12} x2={piX} y2={RULER_Y + 12} class="ruler-mark" />
-      <text x={piX} y={RULER_Y - 18} class="ruler-mark-label" text-anchor="middle">π</text>
-      <line x1={twoPiX} y1={RULER_Y - 12} x2={twoPiX} y2={RULER_Y + 12} class="ruler-mark" />
-      <text x={twoPiX} y={RULER_Y - 18} class="ruler-mark-label" text-anchor="middle">2π</text>
-    </g>
+    <!-- Ruler baseline + ticks — always there, so the rolling wheel
+         visibly sits right down on it from the very start. -->
+    <line x1={anchorX} y1={RULER_Y} x2={twoPiX} y2={RULER_Y} class="ruler-line" />
+    {#each ticks as tick (tick.n)}
+      <line x1={tick.x} y1={RULER_Y - 6} x2={tick.x} y2={RULER_Y + 6} class="ruler-tick" />
+      <text x={tick.x} y={RULER_Y + 22} class="ruler-label" text-anchor="middle">{tick.n}</text>
+    {/each}
+    <line x1={piX} y1={RULER_Y - 12} x2={piX} y2={RULER_Y + 12} class="ruler-mark" />
+    <text x={piX} y={RULER_Y - 18} class="ruler-mark-label" text-anchor="middle">π</text>
+    <line x1={twoPiX} y1={RULER_Y - 12} x2={twoPiX} y2={RULER_Y + 12} class="ruler-mark" />
+    <text x={twoPiX} y={RULER_Y - 18} class="ruler-mark-label" text-anchor="middle">2π</text>
 
-    <!-- Two rays marking the angle — the second one fades out while
-         straightening, since its far end is no longer on the circle. -->
-    <line x1={ORIGIN_X} y1={ORIGIN_Y} x2={anchorX} y2={anchorY} class="ray-line" />
-    <line
-      x1={ORIGIN_X}
-      y1={ORIGIN_Y}
-      x2={ORIGIN_X + RADIUS_PX * Math.cos(radians)}
-      y2={ORIGIN_Y + RADIUS_PX * Math.sin(radians)}
-      class="ray-line"
-      style={`opacity: ${1 - t}`}
-    />
+    <!-- Two rays marking the angle, rigidly attached to the wheel —
+         they roll and fade away together with it. -->
+    <line x1={wheelCenterX} y1={ORIGIN_Y} x2={ray1Point.x} y2={ray1Point.y} class="ray-line" style={`opacity: ${1 - t}`} />
+    <line x1={wheelCenterX} y1={ORIGIN_Y} x2={ray2Point.x} y2={ray2Point.y} class="ray-line" style={`opacity: ${1 - t}`} />
 
-    <!-- The arc itself, morphing into a straight segment. -->
-    <polyline points={polylinePoints} class="arc-line" />
+    <!-- The part of the arc still on the wheel, not yet peeled off. -->
+    {#if remainingSpan > 0.001}
+      <polyline points={wheelArcPolyline} class="arc-line" />
+    {/if}
 
-    <text x={lastPoint.x + 14} y={lastPoint.y - 16} class="length-label" dominant-baseline="middle"
+    <!-- The straightened trail the wheel leaves behind as it rolls. -->
+    <line x1={anchorX} y1={RULER_Y} x2={trailEndX} y2={RULER_Y} class="arc-line" />
+
+    <text x={labelX + 14} y={labelY - 16} class="length-label" dominant-baseline="middle"
       >{formatNum(radians)}</text
     >
 
-    <circle cx={ORIGIN_X} cy={ORIGIN_Y} r="4" class="origin-dot" />
+    <circle cx={wheelCenterX} cy={ORIGIN_Y} r="4" class="origin-dot" style={`opacity: ${1 - t}`} />
   </svg>
 
   <p class="demo-legend">
