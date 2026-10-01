@@ -225,16 +225,19 @@
          the gray ones, together with the arc marking the angle. -->
     <line x1={unitTipX} y1={unitTipY} x2={unitTipX} y2={redProjXEndY} class="projection-line-red" />
     <line x1={unitTipX} y1={unitTipY} x2={redProjYEndX} y2={unitTipY} class="projection-line-red" />
+
+    <!-- Arc marking the angle — drawn in (not just faded in) together
+         with the red vector's own reveal. Drawn before the cos/sin
+         labels below (not after), so their background halo paints on
+         top of the arc instead of the arc covering it. -->
+    <path d={arcPath} class="arc-path" stroke-dasharray={arcLength} stroke-dashoffset={arcLength * (1 - redProgress)} />
+
     <text x={redXLabelX} y={redXLabelY} class="unit-label" text-anchor="middle" dominant-baseline="middle" style={`opacity: ${redProgress}`}
       >cos={formatNum(unitMathX)}</text
     >
     <text x={redYLabelX} y={redYLabelY} class="unit-label" text-anchor={yLabelAnchor} dominant-baseline="middle" style={`opacity: ${redProgress}`}
       >sin={formatNum(unitMathY)}</text
     >
-
-    <!-- Arc marking the angle — drawn in (not just faded in) together
-         with the red vector's own reveal. -->
-    <path d={arcPath} class="arc-path" stroke-dasharray={arcLength} stroke-dashoffset={arcLength * (1 - redProgress)} />
 
     <!-- Gray vector — adjustable length and angle. -->
     <line
