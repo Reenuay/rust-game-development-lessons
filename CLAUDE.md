@@ -24,7 +24,11 @@ what language a tool result, file, or code comment happens to be in.
   to dry enumeration — but simpler is not the same as terser: don't swing
   the other way into precious or overly clever wording either. If a
   sentence reads like a checklist stitched together with dashes and colons,
-  slow down and say it plainly instead.
+  slow down and say it plainly instead. Same failure mode in miniature:
+  posing a question and dash-answering it instead of just stating the
+  thing — "Сколько кружков нарисовать — 5." reads as a broken thought,
+  not a sentence. Say what it actually is: "Иногда нужно просто что-то
+  посчитать: сколько кружков нарисовать, сколько яблок в корзине."
 - Keep it concise — explain the one idea the lesson is about, not everything
   adjacent to it.
 - **Never reference a past lesson without linking it.** No "in a previous
