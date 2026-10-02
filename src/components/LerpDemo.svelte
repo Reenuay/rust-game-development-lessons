@@ -27,9 +27,7 @@
     return markedCode([
       `use macroquad::prelude::*;
 
-// Точка — как в уроке «Точка и прямоугольник». Ещё и Copy — start и end
-// нужно и хранить между кадрами, и передавать в lerp одновременно.
-#[derive(Clone, Copy)]
+// Точка — как в уроке «Точка и прямоугольник».
 struct Point {
     x: f32,
     y: f32,
@@ -52,26 +50,14 @@ const T: f32 = `,
 
 #[macroquad::main("Линейная интерполяция")]
 async fn main() {
-    // Начало и конец отрезка — по умолчанию на одной высоте.
-    let mut start = Point { x: screen_width() * 0.2, y: screen_height() / 2.0 };
-    let mut end = Point { x: screen_width() * 0.8, y: screen_height() / 2.0 };
-
     loop {
         clear_background(BLACK);
 
-        let (mouse_x, mouse_y) = mouse_position();
+        // Начало и конец отрезка — по умолчанию на одной высоте.
+        let start = Point { x: screen_width() * 0.2, y: screen_height() / 2.0 };
+        let end = Point { x: screen_width() * 0.8, y: screen_height() / 2.0 };
 
-        // Отрезок можно перерисовать мышью — та же механика, что и в
-        // уроке «Отрезок мышью»: нажатие ставит начало, зажатая кнопка
-        // тянет конец за курсором.
-        if is_mouse_button_pressed(MouseButton::Left) {
-            start = Point { x: mouse_x, y: mouse_y };
-        }
-        if is_mouse_button_down(MouseButton::Left) {
-            end = Point { x: mouse_x, y: mouse_y };
-        }
-
-        // Сам отрезок — как в уроке «Отрезок мышью».
+        // Сам отрезок.
         draw_line(start.x, start.y, end.x, end.y, 4.0, YELLOW);
         draw_circle(start.x, start.y, 10.0, WHITE);
         draw_circle(end.x, end.y, 10.0, WHITE);
@@ -139,8 +125,7 @@ async fn main() {
   <p class="demo-instructions">
     Двигай ползунок или впиши число — синяя точка едет по отрезку:
     при <code>t = 0</code> она в начале, при <code>t = 1</code> — в
-    конце, а между ними — пропорционально доле пути. Сам отрезок тоже
-    можно перерисовать: клик ставит начало, зажатая кнопка тянет конец:
+    конце, а между ними — пропорционально доле пути:
   </p>
 
   <div class="controls" style={`max-width: ${width}px;`}>
