@@ -47,13 +47,18 @@
 
 <div class="angle-normalize-demo">
   <svg class="angle-normalize-svg" viewBox={`0 0 ${VW} ${VH}`} style={`max-width: ${width}px;`}>
+    <defs>
+      <marker id="angle-normalize-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto">
+        <path d="M0,1.5 L10,5 L0,8.5 Z" class="arrow-head" />
+      </marker>
+    </defs>
+
     <line x1="0" y1={ORIGIN_Y} x2={VW} y2={ORIGIN_Y} class="axis-line" />
     <line x1={ORIGIN_X} y1="0" x2={ORIGIN_X} y2={VH} class="axis-line" />
 
     <path d={arcPath} class="arc-path" />
 
-    <line x1={ORIGIN_X} y1={ORIGIN_Y} x2={tipX} y2={tipY} class="vector-line" />
-    <circle cx={tipX} cy={tipY} r="9" class="tip-dot" />
+    <line x1={ORIGIN_X} y1={ORIGIN_Y} x2={tipX} y2={tipY} class="vector-line" marker-end="url(#angle-normalize-arrow)" />
     <circle cx={ORIGIN_X} cy={ORIGIN_Y} r="4" class="origin-dot" />
   </svg>
 
@@ -129,8 +134,8 @@
     stroke-linecap: round;
   }
 
-  .tip-dot {
-    fill: #22c55e;
+  .arrow-head {
+    fill: var(--sl-color-gray-2);
   }
 
   .origin-dot {
