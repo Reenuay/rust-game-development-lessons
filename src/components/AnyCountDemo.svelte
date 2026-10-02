@@ -4,7 +4,7 @@
   import CodePanel from './CodePanel.svelte';
   import { loadRustHighlighter, highlightRust, plainCodeHtml, markedCode } from '../lib/rustHighlight.js';
 
-  let { name, width = 720, height = 540 } = $props();
+  let { name, width = 860, height = 540 } = $props();
 
   let count = $state(5);
   let highlightField = $state(null);
@@ -26,27 +26,20 @@
 const COUNT: usize = `,
       { field: 'count', value: `${count}` },
       `;
-// Ширина, на которой они равномерно распределены.
-const WIDTH: f32 = 600.0;
+// Откуда начинаем и на сколько пикселей сдвигаем каждый следующий кружок —
+// то же самое, что и в уроке «Цикл for».
+const START_X: f32 = 60.0;
+const STEP: f32 = 80.0;
 
 #[macroquad::main("Сколько угодно кружков")]
 async fn main() {
     loop {
         clear_background(BLACK);
 
-        let center_x = screen_width() / 2.0;
-        let center_y = screen_height() / 2.0;
-
-        // Считаем шаг, только если кружков больше одного — иначе делили
-        // бы на ноль (как в уроке «Деление на ноль»).
-        let step = if COUNT > 1 { WIDTH / (COUNT - 1) as f32 } else { 0.0 };
-        // Средний индекс — точка отсчёта для смещения каждого кружка.
-        let mid = (COUNT - 1) as f32 / 2.0;
-
         // Сколько бы ни было кружков, цикл сам подстроится под COUNT.
         for i in 0..COUNT {
-            let x = center_x + (i as f32 - mid) * step;
-            draw_circle(x, center_y, 20.0, YELLOW);
+            let x = START_X + STEP * (i as f32);
+            draw_circle(x, 60.0, 20.0, YELLOW);
         }
 
         next_frame().await;
@@ -70,10 +63,10 @@ async fn main() {
 
   // <input min max> only guards the spinner arrows, not typed values —
   // clamp for real. Min 1 (not 0 — zero circles would need its own
-  // no-op case we're not covering here), max 20 to keep them
-  // individually visible rather than one solid smear.
+  // no-op case we're not covering here), max 10 so the fixed step
+  // keeps every circle on screen instead of running off the edge.
   function clampCount(value) {
-    return Math.min(20, Math.max(1, Math.round(value)));
+    return Math.min(10, Math.max(1, Math.round(value)));
   }
 
   $effect(() => {
@@ -120,7 +113,7 @@ async fn main() {
       label="count"
       bind:value={count}
       min="1"
-      max="20"
+      max="10"
       step="1"
       onfocus={() => (highlightField = 'count')}
       onblur={() => (highlightField = null)}
