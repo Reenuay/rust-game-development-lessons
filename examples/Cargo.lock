@@ -160,6 +160,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "detection-zone"
+version = "0.1.0"
+dependencies = [
+ "macroquad",
+]
+
+[[package]]
 name = "direction"
 version = "0.1.0"
 dependencies = [
