@@ -28,6 +28,10 @@ export default defineConfig({
           label: 'Уроки',
           items: [{ autogenerate: { directory: 'lessons/basic' } }],
         },
+        {
+          label: 'Дополнительно',
+          items: [{ autogenerate: { directory: 'lessons/extra' } }],
+        },
       ],
     }),
     svelte(),
