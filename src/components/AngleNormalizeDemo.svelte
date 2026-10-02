@@ -75,7 +75,7 @@
 
   <div class="controls" style={`max-width: ${width}px;`}>
     <RangeSlider
-      label="raw"
+      label="raw°"
       bind:value={rawDegrees}
       min="-720"
       max="720"
@@ -84,7 +84,7 @@
       onblur={() => (highlightField = null)}
     />
     <NumberField
-      label="raw"
+      label="raw°"
       bind:value={rawDegrees}
       min="-720"
       max="720"
