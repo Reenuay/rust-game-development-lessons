@@ -6,11 +6,9 @@
   // (SVG + JS, no macroquad/WASM involved). The slider sets a "raw"
   // angle in degrees that's allowed to wander far outside -180..180 —
   // simulating an angle that's been accumulating for a while (as in
-  // Rotation/Satellite) rather than a single fresh atan2 result. That
-  // range is exactly what breaks the naive "add 360 once" fix: it only
-  // ever undoes one wrap, so it still misses once raw wanders past a
-  // second one. rem_euclid stays correct everywhere, which is the
-  // whole point of the demo.
+  // Rotation/Satellite) rather than a single fresh atan2 result.
+  // rem_euclid stays correct everywhere, which is the whole point of
+  // the demo.
   let { width = 720 } = $props();
 
   const VW = 720;
@@ -31,23 +29,17 @@
     rawDegrees = clampRaw(rawDegrees);
   });
 
-  // The naive fix from the lesson: works only if raw is already within
-  // one wrap of 0..360, exactly like atan2's own output range.
-  let naiveDegrees = $derived(rawDegrees < 0 ? rawDegrees + 360 : rawDegrees);
-
   // rem_euclid's JS equivalent — always lands in 0..360, no matter how
   // many times raw has wrapped around in either direction.
-  let correctDegrees = $derived(((rawDegrees % 360) + 360) % 360);
+  let normalizedDegrees = $derived(((rawDegrees % 360) + 360) % 360);
 
-  let naiveOk = $derived(naiveDegrees === correctDegrees);
-
-  let angleRad = $derived((correctDegrees * Math.PI) / 180);
+  let angleRad = $derived((normalizedDegrees * Math.PI) / 180);
   let tipX = $derived(ORIGIN_X + Math.cos(angleRad) * ARROW_LENGTH);
   let tipY = $derived(ORIGIN_Y + Math.sin(angleRad) * ARROW_LENGTH);
 
   let arcEndX = $derived(ORIGIN_X + Math.cos(angleRad) * ARC_RADIUS);
   let arcEndY = $derived(ORIGIN_Y + Math.sin(angleRad) * ARC_RADIUS);
-  let arcLarge = $derived(correctDegrees > 180 ? 1 : 0);
+  let arcLarge = $derived(normalizedDegrees > 180 ? 1 : 0);
   let arcPath = $derived(
     `M ${ORIGIN_X + ARC_RADIUS} ${ORIGIN_Y} A ${ARC_RADIUS} ${ARC_RADIUS} 0 ${arcLarge} 1 ${arcEndX} ${arcEndY}`,
   );
@@ -66,19 +58,14 @@
   </svg>
 
   <p class="demo-stats">
-    <code>raw = {rawDegrees}°</code> →
-    наивный способ: <code class:bad={!naiveOk}>{naiveDegrees}°</code>
-    {naiveOk ? '(совпадает)' : '(мимо — всё ещё не 0..360)'},
-    <code>rem_euclid: {correctDegrees}°</code>
+    <code>raw = {rawDegrees}°</code> → <code>rem_euclid: {normalizedDegrees}°</code>
   </p>
 
   <p class="demo-legend">
     Двигай ползунок — <code>raw</code> изображает угол, который успел
     накопиться за много кадров и мог обернуться вокруг оси не один раз.
-    Стрелка на картинке всегда стоит под правильным углом,
-    <code>rem_euclid</code>-результатом. «Наивный способ» — прибавить
-    360° один раз, если угол отрицательный, — совпадает с ним, только
-    пока <code>raw</code> не ушёл дальше одного оборота.
+    Стрелка на картинке всегда стоит под результатом
+    <code>rem_euclid</code>, при любом значении <code>raw</code>.
   </p>
 
   <div class="controls" style={`max-width: ${width}px;`}>
@@ -118,10 +105,6 @@
     margin: 0.75rem 0;
     font-family: var(--__sl-font-mono, ui-monospace, monospace);
     font-size: var(--sl-text-sm);
-  }
-
-  .demo-stats code.bad {
-    color: #ef4444;
   }
 
   .demo-legend {
