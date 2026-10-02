@@ -1,4 +1,5 @@
 use macroquad::prelude::*;
+use std::f32::consts::PI;
 use std::sync::atomic::{AtomicU32, Ordering};
 
 static SECTOR_START: AtomicU32 = AtomicU32::new(0);
@@ -23,8 +24,8 @@ const BISECTOR_LENGTH: f32 = 120.0;
 
 #[macroquad::main("Сектор обнаружения")]
 async fn main() {
-    set_sector_start(90.0);
-    set_sector_end(180.0);
+    set_sector_start(PI / 2.0);
+    set_sector_end(PI);
 
     loop {
         clear_background(BLACK);
@@ -41,32 +42,33 @@ async fn main() {
         let dx = mouse_x - center_x;
         let dy = mouse_y - center_y;
 
-        // Угол на курсор — как в уроке «Угол вектора», сразу в градусах.
-        let mouse_angle = dy.atan2(dx).to_degrees();
+        // Угол на курсор — как в уроке «Угол вектора», в радианах.
+        let mouse_angle = dy.atan2(dx);
 
-        // На сколько градусов по часовой стрелке от sector_start до
+        // Сколько радиан по часовой стрелке от sector_start до
         // sector_end — весь сектор целиком (rem_euclid сам разбирается
-        // с переходом через 0°/360°, как в уроке «Угол от 0 до 360°»).
-        let sector_span = (sector_end - sector_start).rem_euclid(360.0);
-        // На сколько градусов по часовой стрелке от sector_start до курсора.
-        let relative = (mouse_angle - sector_start).rem_euclid(360.0);
+        // с переходом через точку обрыва оборота, как в уроке «Угол от
+        // 0 до 360°»).
+        let sector_span = (sector_end - sector_start).rem_euclid(2.0 * PI);
+        // Сколько радиан по часовой стрелке от sector_start до курсора.
+        let relative = (mouse_angle - sector_start).rem_euclid(2.0 * PI);
 
         let inside = relative <= sector_span;
 
         // Граничные лучи сектора — уходят далеко за край экрана.
-        let start_x = center_x + sector_start.to_radians().cos() * RAY_LENGTH;
-        let start_y = center_y + sector_start.to_radians().sin() * RAY_LENGTH;
+        let start_x = center_x + sector_start.cos() * RAY_LENGTH;
+        let start_y = center_y + sector_start.sin() * RAY_LENGTH;
         draw_line(center_x, center_y, start_x, start_y, 3.0, GRAY);
 
-        let end_x = center_x + sector_end.to_radians().cos() * RAY_LENGTH;
-        let end_y = center_y + sector_end.to_radians().sin() * RAY_LENGTH;
+        let end_x = center_x + sector_end.cos() * RAY_LENGTH;
+        let end_y = center_y + sector_end.sin() * RAY_LENGTH;
         draw_line(center_x, center_y, end_x, end_y, 3.0, GRAY);
 
         // Биссектриса — ровно посередине сектора, только чтобы видно
         // было, какая сторона проверяется. На саму проверку не влияет.
         let middle_angle = sector_start + sector_span / 2.0;
-        let middle_x = center_x + middle_angle.to_radians().cos() * BISECTOR_LENGTH;
-        let middle_y = center_y + middle_angle.to_radians().sin() * BISECTOR_LENGTH;
+        let middle_x = center_x + middle_angle.cos() * BISECTOR_LENGTH;
+        let middle_y = center_y + middle_angle.sin() * BISECTOR_LENGTH;
         draw_line(center_x, center_y, middle_x, middle_y, 3.0, YELLOW);
 
         // Турель красная, если курсор внутри сектора, иначе синяя.

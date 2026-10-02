@@ -7,24 +7,27 @@
 
   let { name, width = 720, height = 540 } = $props();
 
-  let sectorStart = $state(90);
-  let sectorEnd = $state(180);
+  const TAU = Math.PI * 2;
+
+  let sectorStart = $state(Math.PI / 2);
+  let sectorEnd = $state(Math.PI);
   let highlightField = $state(null);
   let built = $derived(codeFor(sectorStart, sectorEnd));
   let code = $derived(built.code);
-  let codeHtml = $state(plainCodeHtml(codeFor(90, 180).code));
+  let codeHtml = $state(plainCodeHtml(codeFor(Math.PI / 2, Math.PI).code));
 
   let iframeEl = $state(null);
   let highlighter;
   let ready = false;
 
   function formatFloat(n) {
-    return Number.isInteger(n) ? `${n}.0` : `${n}`;
+    return n.toFixed(2);
   }
 
   function codeFor(sectorStart, sectorEnd) {
     return markedCode([
       `use macroquad::prelude::*;
+use std::f32::consts::PI;
 
 #[macroquad::main("Сектор обнаружения")]
 async fn main() {
@@ -48,33 +51,34 @@ async fn main() {
         let dx = mouse_x - center_x;
         let dy = mouse_y - center_y;
 
-        // Угол на курсор — как в уроке «Угол вектора», сразу в градусах.
-        let mouse_angle = dy.atan2(dx).to_degrees();
+        // Угол на курсор — как в уроке «Угол вектора», в радианах.
+        let mouse_angle = dy.atan2(dx);
 
-        // На сколько градусов по часовой стрелке от sector_start до
+        // Сколько радиан по часовой стрелке от sector_start до
         // sector_end — весь сектор целиком (rem_euclid сам разбирается
-        // с переходом через 0°/360°, как в уроке «Угол от 0 до 360°»).
-        let sector_span = (sector_end - sector_start).rem_euclid(360.0);
-        // На сколько градусов по часовой стрелке от sector_start до курсора.
-        let relative = (mouse_angle - sector_start).rem_euclid(360.0);
+        // с переходом через точку обрыва оборота, как в уроке «Угол от
+        // 0 до 360°»).
+        let sector_span = (sector_end - sector_start).rem_euclid(2.0 * PI);
+        // Сколько радиан по часовой стрелке от sector_start до курсора.
+        let relative = (mouse_angle - sector_start).rem_euclid(2.0 * PI);
 
         let inside = relative <= sector_span;
 
         // Граничные лучи сектора — уходят далеко за край экрана.
         let ray_length = 2000.0;
-        let start_x = center_x + sector_start.to_radians().cos() * ray_length;
-        let start_y = center_y + sector_start.to_radians().sin() * ray_length;
+        let start_x = center_x + sector_start.cos() * ray_length;
+        let start_y = center_y + sector_start.sin() * ray_length;
         draw_line(center_x, center_y, start_x, start_y, 3.0, GRAY);
 
-        let end_x = center_x + sector_end.to_radians().cos() * ray_length;
-        let end_y = center_y + sector_end.to_radians().sin() * ray_length;
+        let end_x = center_x + sector_end.cos() * ray_length;
+        let end_y = center_y + sector_end.sin() * ray_length;
         draw_line(center_x, center_y, end_x, end_y, 3.0, GRAY);
 
         // Биссектриса — ровно посередине сектора, только чтобы видно
         // было, какая сторона проверяется. На саму проверку не влияет.
         let middle_angle = sector_start + sector_span / 2.0;
-        let middle_x = center_x + middle_angle.to_radians().cos() * 120.0;
-        let middle_y = center_y + middle_angle.to_radians().sin() * 120.0;
+        let middle_x = center_x + middle_angle.cos() * 120.0;
+        let middle_y = center_y + middle_angle.sin() * 120.0;
         draw_line(center_x, center_y, middle_x, middle_y, 3.0, YELLOW);
 
         // Турель красная, если курсор внутри сектора, иначе синяя.
@@ -107,13 +111,13 @@ async fn main() {
     ready = true;
   }
 
-  function clampDegrees(value) {
-    return Math.round(Math.min(360, Math.max(0, value)));
+  function clampRadians(value) {
+    return Math.min(TAU, Math.max(0, value));
   }
 
   $effect(() => {
-    sectorStart = clampDegrees(sectorStart);
-    sectorEnd = clampDegrees(sectorEnd);
+    sectorStart = clampRadians(sectorStart);
+    sectorEnd = clampRadians(sectorEnd);
     applyValues();
     renderCode();
   });
@@ -147,28 +151,29 @@ async fn main() {
 
   <p class="demo-instructions">
     Серые лучи — границы сектора: от <code>start</code> до
-    <code>end</code> по часовой стрелке. Жёлтый отрезок покороче —
-    просто ориентир, какая из двух сторон проверяется, на саму проверку
-    не влияет. Води мышью — турель красная, пока курсор внутри сектора,
-    иначе синяя. Подвигай оба поля:
+    <code>end</code> по часовой стрелке, оба в радианах. Жёлтый
+    отрезок покороче — просто ориентир, какая из двух сторон
+    проверяется, на саму проверку не влияет. Води мышью — турель
+    красная, пока курсор внутри сектора, иначе синяя. Подвигай оба
+    поля:
   </p>
 
   <div class="controls" style={`max-width: ${width}px;`}>
     <RangeSlider
-      label="start°"
+      label="start"
       bind:value={sectorStart}
       min="0"
-      max="360"
-      step="1"
+      max={TAU}
+      step="0.01"
       onfocus={() => (highlightField = 'start')}
       onblur={() => (highlightField = null)}
     />
     <NumberField
-      label="start°"
+      label="start"
       bind:value={sectorStart}
       min="0"
-      max="360"
-      step="1"
+      max={TAU}
+      step="0.01"
       onfocus={() => (highlightField = 'start')}
       onblur={() => (highlightField = null)}
     />
@@ -176,20 +181,20 @@ async fn main() {
 
   <div class="controls" style={`max-width: ${width}px;`}>
     <RangeSlider
-      label="end°"
+      label="end"
       bind:value={sectorEnd}
       min="0"
-      max="360"
-      step="1"
+      max={TAU}
+      step="0.01"
       onfocus={() => (highlightField = 'end')}
       onblur={() => (highlightField = null)}
     />
     <NumberField
-      label="end°"
+      label="end"
       bind:value={sectorEnd}
       min="0"
-      max="360"
-      step="1"
+      max={TAU}
+      step="0.01"
       onfocus={() => (highlightField = 'end')}
       onblur={() => (highlightField = null)}
     />
