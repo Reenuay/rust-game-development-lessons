@@ -63,10 +63,10 @@ async fn main() {
 
   // <input min max> only guards the spinner arrows, not typed values —
   // clamp for real. Min 1 (not 0 — zero circles would need its own
-  // no-op case we're not covering here), max 10 so the fixed step
-  // keeps every circle on screen instead of running off the edge.
+  // no-op case we're not covering here), max 20 — with the fixed
+  // START_X/STEP, 20 circles still fit the demo's actual canvas width.
   function clampCount(value) {
-    return Math.min(10, Math.max(1, Math.round(value)));
+    return Math.min(20, Math.max(1, Math.round(value)));
   }
 
   $effect(() => {
@@ -113,7 +113,7 @@ async fn main() {
       label="count"
       bind:value={count}
       min="1"
-      max="10"
+      max="20"
       step="1"
       onfocus={() => (highlightField = 'count')}
       onblur={() => (highlightField = null)}
