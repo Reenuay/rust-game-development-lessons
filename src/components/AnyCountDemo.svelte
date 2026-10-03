@@ -29,7 +29,7 @@ const COUNT: usize = `,
 // Откуда начинаем и на сколько пикселей сдвигаем каждый следующий кружок —
 // то же самое, что и в уроке «Цикл for».
 const START_X: f32 = 60.0;
-const STEP: f32 = 80.0;
+const STEP: f32 = 160.0;
 
 #[macroquad::main("Сколько угодно кружков")]
 async fn main() {
@@ -39,7 +39,7 @@ async fn main() {
         // Сколько бы ни было кружков, цикл сам подстроится под COUNT.
         for i in 0..COUNT {
             let x = START_X + STEP * (i as f32);
-            draw_circle(x, screen_height() / 2.0, 20.0, YELLOW);
+            draw_circle(x, screen_height() / 2.0, 40.0, YELLOW);
         }
 
         next_frame().await;
@@ -63,10 +63,10 @@ async fn main() {
 
   // <input min max> only guards the spinner arrows, not typed values —
   // clamp for real. Min 1 (not 0 — zero circles would need its own
-  // no-op case we're not covering here), max 20 — with the fixed
-  // START_X/STEP, 20 circles still fit the demo's actual canvas width.
+  // no-op case we're not covering here), max 16 — with the fixed
+  // START_X/STEP, 16 circles still fit the demo's actual canvas width.
   function clampCount(value) {
-    return Math.min(20, Math.max(1, Math.round(value)));
+    return Math.min(16, Math.max(1, Math.round(value)));
   }
 
   $effect(() => {
@@ -113,7 +113,7 @@ async fn main() {
       label="count"
       bind:value={count}
       min="1"
-      max="20"
+      max="16"
       step="1"
       onfocus={() => (highlightField = 'count')}
       onblur={() => (highlightField = null)}

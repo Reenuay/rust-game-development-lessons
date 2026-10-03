@@ -11,7 +11,7 @@ pub extern "C" fn set_count(count: f32) {
 // Откуда начинаем и на сколько пикселей сдвигаем каждый следующий кружок —
 // то же самое, что и в уроке «Цикл for».
 const START_X: f32 = 60.0;
-const STEP: f32 = 80.0;
+const STEP: f32 = 160.0;
 
 #[macroquad::main("Сколько угодно кружков")]
 async fn main() {
@@ -23,7 +23,7 @@ async fn main() {
         // Сколько бы ни было кружков, цикл сам подстроится под count.
         for i in 0..count {
             let x = START_X + STEP * (i as f32);
-            draw_circle(x, screen_height() / 2.0, 20.0, YELLOW);
+            draw_circle(x, screen_height() / 2.0, 40.0, YELLOW);
         }
 
         next_frame().await;

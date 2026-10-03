@@ -11,11 +11,11 @@ import WasmCanvas from '../../../../components/WasmCanvas.svelte';
 `draw_circle` пять раз, каждый раз со своим `x`:
 
 ```rust
-draw_circle(60.0, screen_height() / 2.0, 20.0, YELLOW);
-draw_circle(140.0, screen_height() / 2.0, 20.0, YELLOW);
-draw_circle(220.0, screen_height() / 2.0, 20.0, YELLOW);
-draw_circle(300.0, screen_height() / 2.0, 20.0, YELLOW);
-draw_circle(380.0, screen_height() / 2.0, 20.0, YELLOW);
+draw_circle(60.0, screen_height() / 2.0, 40.0, YELLOW);
+draw_circle(220.0, screen_height() / 2.0, 40.0, YELLOW);
+draw_circle(380.0, screen_height() / 2.0, 40.0, YELLOW);
+draw_circle(540.0, screen_height() / 2.0, 40.0, YELLOW);
+draw_circle(700.0, screen_height() / 2.0, 40.0, YELLOW);
 ```
 
 Работает — но если кружков нужно не пять, а сто, придётся писать сто
@@ -60,7 +60,7 @@ use macroquad::prelude::*;
 const COUNT: usize = 5;
 // Откуда начинаем и на сколько пикселей сдвигаем каждый следующий кружок.
 const START_X: f32 = 60.0;
-const STEP: f32 = 80.0;
+const STEP: f32 = 160.0;
 
 #[macroquad::main("Цикл for")]
 async fn main() {
@@ -71,7 +71,7 @@ async fn main() {
         for i in 0..COUNT {
             // Начинаем от START_X и сдвигаемся на i шагов вправо.
             let x = START_X + STEP * (i as f32);
-            draw_circle(x, screen_height() / 2.0, 20.0, YELLOW);
+            draw_circle(x, screen_height() / 2.0, 40.0, YELLOW);
         }
 
         next_frame().await;
