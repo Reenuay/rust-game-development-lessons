@@ -50,28 +50,16 @@ async fn main() {
             circles = kept_circles;
         }
 
-        // Рисуем каждый кружок и подписываем его ID.
+        // Рисуем каждый кружок, подписываем его ID и, если это и есть
+        // TARGET_ID, тут же обводим его кольцом — отдельный проход по
+        // списку ради этого не нужен.
         for &(id, x, y) in &circles {
             draw_circle(x, y, RADIUS, YELLOW);
             draw_text(&id.to_string(), x, y, 128.0, BLACK);
-        }
 
-        // Ищем кружок с TARGET_ID — перебираем список, а не обращаемся по индексу.
-        let mut found = false;
-        let mut target_x = 0.0;
-        let mut target_y = 0.0;
-
-        for &(id, x, y) in &circles {
             if id == TARGET_ID {
-                found = true;
-                target_x = x;
-                target_y = y;
+                draw_circle_lines(x, y, RADIUS + 10.0, 4.0, WHITE);
             }
-        }
-
-        // Кольцо рисуем, только если кружок с таким ID всё ещё в списке.
-        if found {
-            draw_circle_lines(target_x, target_y, RADIUS + 10.0, 4.0, WHITE);
         }
 
         next_frame().await;
