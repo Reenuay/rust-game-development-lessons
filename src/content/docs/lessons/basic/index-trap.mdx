@@ -1,0 +1,141 @@
+---
+title: Ловушка индекса
+description: Запомнили кружок по его номеру в списке — а после первого же удаления другого кружка "запомненным" оказывается совсем не тот.
+sidebar:
+  order: 68
+---
+
+import WasmCanvas from '../../../../components/WasmCanvas.svelte';
+
+В уроке [«Кружки исчезают»](../circles-vanish/) клик убирал кружок из
+списка, и список пересобирался заново, без него. А что, если нужно не
+просто убирать кружки, а ещё и **запомнить** один конкретный — скажем,
+турель держит его на прицеле, и это должен быть именно он, кадр за
+кадром, что бы ни происходило с остальными?
+
+Самый очевидный способ — запомнить его номер в списке:
+
+```rust
+// "Запомненный" кружок — просто его номер в списке, четвёртый по счёту.
+const TARGET_INDEX: usize = 3;
+```
+
+А дальше на каждом кадре рисуем вокруг него кольцо:
+
+```rust
+if TARGET_INDEX < circles.len() {
+    let target = &circles[TARGET_INDEX];
+    draw_circle_lines(target.x, target.y, target.radius + 10.0, 4.0, WHITE);
+}
+```
+
+## Код
+
+Замени содержимое `src/main.rs` на это:
+
+```rust title="src/main.rs"
+use macroquad::prelude::*;
+
+// Фиксированный список цветов, из которого выбираем случайный.
+const COLORS: [Color; 4] = [YELLOW, RED, GREEN, BLUE];
+
+// Один кружок: положение, радиус и цвет вместе, под понятными именами.
+struct Circle {
+    x: f32,
+    y: f32,
+    radius: f32,
+    color: Color,
+}
+
+// Своя функция: расстояние между двумя точками, как в уроке «Расстояние».
+fn distance(from_x: f32, from_y: f32, to_x: f32, to_y: f32) -> f32 {
+    let dx = to_x - from_x;
+    let dy = to_y - from_y;
+    (dx * dx + dy * dy).sqrt()
+}
+
+// "Запомненный" кружок — просто его номер в списке, четвёртый по счёту.
+const TARGET_INDEX: usize = 3;
+
+#[macroquad::main("Ловушка индекса")]
+async fn main() {
+    // Начальный набор кружков — случайные позиции, радиусы и цвета.
+    let mut circles: Vec<Circle> = Vec::new();
+    for _ in 0..8 {
+        circles.push(Circle {
+            x: rand::gen_range(40.0, screen_width() - 40.0),
+            y: rand::gen_range(40.0, screen_height() - 40.0),
+            radius: rand::gen_range(20.0, 50.0),
+            color: COLORS[rand::gen_range(0, COLORS.len())],
+        });
+    }
+
+    loop {
+        clear_background(BLACK);
+
+        // Клик только что случился — убираем кружки под курсором.
+        if is_mouse_button_pressed(MouseButton::Left) {
+            let (mouse_x, mouse_y) = mouse_position();
+
+            // Новый пустой список — специально для кружков, которые стоит оставить.
+            let mut kept_circles: Vec<Circle> = Vec::new();
+
+            // Забираем старый список circles в собственность.
+            for circle in circles {
+                let clicked_inside = distance(mouse_x, mouse_y, circle.x, circle.y) < circle.radius;
+
+                if !clicked_inside {
+                    kept_circles.push(circle);
+                }
+            }
+
+            // На этот кадр circles становится тем, что мы только что собрали.
+            circles = kept_circles;
+        }
+
+        // Рисуем всё, что осталось.
+        for circle in &circles {
+            draw_circle(circle.x, circle.y, circle.radius, circle.color);
+        }
+
+        // Кольцо вокруг "запомненного" кружка — только по номеру в списке.
+        if TARGET_INDEX < circles.len() {
+            let target = &circles[TARGET_INDEX];
+            draw_circle_lines(target.x, target.y, target.radius + 10.0, 4.0, WHITE);
+        }
+
+        next_frame().await;
+    }
+}
+```
+
+Запусти как обычно:
+
+```sh
+cargo run
+```
+
+Один из кружков обведён белым кольцом — это и есть «запомненный»,
+`TARGET_INDEX`. Кликни по **другому** кружку, который на экране левее
+или выше него (то есть раньше попал в список), чтобы убрать его —
+и кольцо тут же перескочит на другой кружок, хотя ты его не трогал:
+
+<WasmCanvas name="index-trap" client:load />
+
+## Что здесь происходит
+
+- `TARGET_INDEX` — просто число, место в списке. Само по себе оно
+  ничего не знает о конкретном кружке — только о позиции.
+- Когда кружок удаляется, все, что были после него в списке,
+  сдвигаются на одну позицию раньше. `TARGET_INDEX` при этом не
+  меняется — он по-прежнему указывает на позицию `3`, но теперь там
+  лежит уже другой кружок.
+- Кольцо честно рисуется вокруг того, что сейчас находится по индексу
+  `3`, — программа делает ровно то, что написано, просто то, что
+  написано, оказалось не тем, что имелось в виду.
+- Если удалить достаточно кружков, `TARGET_INDEX` вообще выйдет за
+  пределы списка — тогда кольцо просто пропадёт, потому что
+  `TARGET_INDEX < circles.len()` станет `false`.
+
+Индекс — это место в списке, а не личность кружка. В следующем уроке
+разберёмся, как запоминать именно кружок, а не его текущую позицию.

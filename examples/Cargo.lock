@@ -288,6 +288,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "index-trap"
+version = "0.1.0"
+dependencies = [
+ "macroquad",
+]
+
+[[package]]
 name = "input"
 version = "0.1.0"
 dependencies = [
