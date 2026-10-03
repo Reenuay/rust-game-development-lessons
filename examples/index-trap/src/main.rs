@@ -50,17 +50,16 @@ async fn main() {
             circles = kept_circles;
         }
 
-        // Рисуем каждый кружок и подписываем его индексом в списке.
+        // Рисуем каждый кружок, подписываем его индексом и, если это и есть
+        // TARGET_INDEX, тут же обводим его кольцом.
         for i in 0..circles.len() {
             let (x, y) = circles[i];
             draw_circle(x, y, RADIUS, YELLOW);
             draw_text(&i.to_string(), x, y, 128.0, BLACK);
-        }
 
-        // Кольцо вокруг "запомненного" кружка — только по номеру в списке.
-        if TARGET_INDEX < circles.len() {
-            let (x, y) = circles[TARGET_INDEX];
-            draw_circle_lines(x, y, RADIUS + 10.0, 4.0, WHITE);
+            if i == TARGET_INDEX {
+                draw_circle_lines(x, y, RADIUS + 10.0, 4.0, WHITE);
+            }
         }
 
         next_frame().await;
