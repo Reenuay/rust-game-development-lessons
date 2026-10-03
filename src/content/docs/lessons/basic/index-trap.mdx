@@ -65,7 +65,7 @@ async fn main() {
         circles.push(Circle {
             x: rand::gen_range(40.0, screen_width() - 40.0),
             y: rand::gen_range(40.0, screen_height() - 40.0),
-            radius: rand::gen_range(20.0, 50.0),
+            radius: rand::gen_range(50.0, 100.0),
             color: COLORS[rand::gen_range(0, COLORS.len())],
         });
     }
