@@ -1,13 +1,13 @@
 use macroquad::prelude::*;
 
 // Радиус один и тот же у всех кружков — фиксированный, как в уроке «Константы».
-const RADIUS: f32 = 60.0;
+const RADIUS: f32 = 84.0;
 
 // Сколько кружков рисуем и как их расставить в ряд — те же START_X и STEP,
 // что и в уроке «Цикл for».
 const COUNT: usize = 5;
 const START_X: f32 = 100.0;
-const STEP: f32 = 150.0;
+const STEP: f32 = 228.0;
 
 // Своя функция: расстояние между двумя точками, как в уроке «Расстояние».
 fn distance(from_x: f32, from_y: f32, to_x: f32, to_y: f32) -> f32 {
