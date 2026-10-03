@@ -51,7 +51,7 @@ async fn main() {
         let dx = mouse_x - center_x;
         let dy = mouse_y - center_y;
 
-        // Угол на курсор — как в уроке «Угол вектора», в радианах.
+        // Угол в сторону курсора — как в уроке «Угол вектора», в радианах.
         let mouse_angle = dy.atan2(dx);
 
         // Сколько радиан по часовой стрелке от sector_start до
