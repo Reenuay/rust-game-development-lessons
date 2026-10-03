@@ -57,9 +57,11 @@ async fn main() {
             circles = kept_circles;
         }
 
-        // Рисуем всё, что осталось.
-        for circle in &circles {
+        // Рисуем каждый кружок и подписываем его индексом в списке.
+        for i in 0..circles.len() {
+            let circle = &circles[i];
             draw_circle(circle.x, circle.y, circle.radius, circle.color);
+            draw_text(&i.to_string(), circle.x, circle.y, 32.0, WHITE);
         }
 
         // Кольцо вокруг "запомненного" кружка — только по номеру в списке.
