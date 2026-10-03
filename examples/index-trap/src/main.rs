@@ -61,7 +61,7 @@ async fn main() {
         for i in 0..circles.len() {
             let circle = &circles[i];
             draw_circle(circle.x, circle.y, circle.radius, circle.color);
-            draw_text(&i.to_string(), circle.x, circle.y, 32.0, WHITE);
+            draw_text(&i.to_string(), circle.x, circle.y, 128.0, BLACK);
         }
 
         // Кольцо вокруг "запомненного" кружка — только по номеру в списке.
