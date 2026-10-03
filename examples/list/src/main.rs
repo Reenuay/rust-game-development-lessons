@@ -13,7 +13,7 @@ async fn main() {
             points.push(mouse_position());
         }
 
-        // Рисуем кружок в каждой запомненной точке.
+        // Рисуем кружок в каждой точке, которую запомнили.
         for &(x, y) in &points {
             draw_circle(x, y, 20.0, YELLOW);
         }
