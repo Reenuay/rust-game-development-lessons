@@ -51,8 +51,7 @@ async fn main() {
         }
 
         // Рисуем каждый кружок, подписываем его ID и, если это и есть
-        // TARGET_ID, тут же обводим его кольцом — отдельный проход по
-        // списку ради этого не нужен.
+        // TARGET_ID, тут же обводим его кольцом.
         for &(id, x, y) in &circles {
             draw_circle(x, y, RADIUS, YELLOW);
             draw_text(&id.to_string(), x, y, 128.0, BLACK);
