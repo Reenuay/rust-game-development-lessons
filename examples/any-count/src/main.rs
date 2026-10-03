@@ -23,7 +23,7 @@ async fn main() {
         // Сколько бы ни было кружков, цикл сам подстроится под count.
         for i in 0..count {
             let x = START_X + STEP * (i as f32);
-            draw_circle(x, 60.0, 20.0, YELLOW);
+            draw_circle(x, screen_height() / 2.0, 20.0, YELLOW);
         }
 
         next_frame().await;

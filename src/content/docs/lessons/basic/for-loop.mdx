@@ -7,15 +7,15 @@ sidebar:
 
 import WasmCanvas from '../../../../components/WasmCanvas.svelte';
 
-Нарисуем пять кружков в ряд в левом верхнем углу экрана. Можно просто
-вызвать `draw_circle` пять раз, каждый раз со своим `x`:
+Нарисуем пять кружков в ряд посередине экрана. Можно просто вызвать
+`draw_circle` пять раз, каждый раз со своим `x`:
 
 ```rust
-draw_circle(60.0, 60.0, 20.0, YELLOW);
-draw_circle(140.0, 60.0, 20.0, YELLOW);
-draw_circle(220.0, 60.0, 20.0, YELLOW);
-draw_circle(300.0, 60.0, 20.0, YELLOW);
-draw_circle(380.0, 60.0, 20.0, YELLOW);
+draw_circle(60.0, screen_height() / 2.0, 20.0, YELLOW);
+draw_circle(140.0, screen_height() / 2.0, 20.0, YELLOW);
+draw_circle(220.0, screen_height() / 2.0, 20.0, YELLOW);
+draw_circle(300.0, screen_height() / 2.0, 20.0, YELLOW);
+draw_circle(380.0, screen_height() / 2.0, 20.0, YELLOW);
 ```
 
 Работает — но если кружков нужно не пять, а сто, придётся писать сто
@@ -71,7 +71,7 @@ async fn main() {
         for i in 0..COUNT {
             // Начинаем от START_X и сдвигаемся на i шагов вправо.
             let x = START_X + STEP * (i as f32);
-            draw_circle(x, 60.0, 20.0, YELLOW);
+            draw_circle(x, screen_height() / 2.0, 20.0, YELLOW);
         }
 
         next_frame().await;
@@ -85,7 +85,7 @@ async fn main() {
 cargo run
 ```
 
-Пять жёлтых кружков встают ровным рядом в левом верхнем углу — так же,
+Пять жёлтых кружков встают ровным рядом посередине экрана — так же,
 как если бы мы вручную выписали все пять `draw_circle`, только теперь
 это одна строка `draw_circle` внутри `for`:
 
@@ -103,6 +103,3 @@ cargo run
 - `COUNT`, `START_X` и `STEP` — `const` вне `main`, как в уроке
   [«Константы»](../constants/): все три числа не меняются, пока
   программа работает.
-- Кружки нарочно стоят на фиксированном месте в углу, а не по центру
-  экрана — так на виду остаётся только сам `for`, без лишних
-  вычислений вокруг него.
