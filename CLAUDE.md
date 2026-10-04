@@ -39,6 +39,24 @@ what language a tool result, file, or code comment happens to be in.
   that keeps sliding back into the dry phrasing.
 - Keep it concise — explain the one idea the lesson is about, not everything
   adjacent to it.
+- **When removing an explanation because it turned out unnecessary, remove
+  it completely — don't leave a trace of the thing it used to justify.**
+  Concretely: if code used to need a comparison ("это внутри `loop`,
+  поэтому выполняется заново на каждом кадре, как и раньше") and the
+  "раньше" it's contrasting against is no longer in the lesson, cut the
+  whole comparison, not just soften it. Don't pre-explain a distinction
+  (e.g. computed once outside `loop` vs. recomputed each frame inside it)
+  before the lesson that actually needs it — that's `mutability.mdx`'s job
+  for the loop-timing question, not `variables.mdx`'s. A half-removed
+  explanation that still gestures at the old justification has the same
+  shape as the next bullet's bug: it refers to context the reader never
+  got.
+- **Never phrase an explanation as refuting something the reader never
+  assumed.** "Отдельно проверять... не нужно", "а не хватаясь за первый
+  попавшийся", "это и называется индекс" — all read as correcting an
+  expectation the lesson itself never set up, which makes the reader
+  wonder what they missed. State what the code does; don't stage a strawman
+  belief just to knock it down.
 - **Never reference a past lesson without linking it.** No "in a previous
   lesson we..." — always a real markdown link to the specific lesson, e.g.
   `[«Клик мышью»](../mouse-click/)`. Every existing lesson already does
