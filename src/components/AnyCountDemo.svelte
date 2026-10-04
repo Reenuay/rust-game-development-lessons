@@ -4,7 +4,7 @@
   import CodePanel from './CodePanel.svelte';
   import { loadRustHighlighter, highlightRust, plainCodeHtml, markedCode } from '../lib/rustHighlight.js';
 
-  let { name, width = 860, height = 540 } = $props();
+  let { name, width = 720, height = 540 } = $props();
 
   let count = $state(5);
   let highlightField = $state(null);
