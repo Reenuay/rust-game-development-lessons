@@ -2,12 +2,12 @@ use macroquad::prelude::*;
 
 #[macroquad::main("Иначе")]
 async fn main() {
-    // Центр экрана — считаем один раз, до loop.
-    let center_x = screen_width() / 2.0;
-    let center_y = screen_height() / 2.0;
-
     loop {
         clear_background(BLACK);
+
+        // Центр экрана — нужен сразу в трёх местах ниже, поэтому с именем.
+        let center_x = screen_width() / 2.0;
+        let center_y = screen_height() / 2.0;
 
         if is_mouse_button_down(MouseButton::Left) {
             // Кнопка нажата — рисуем жёлтый кружок.
