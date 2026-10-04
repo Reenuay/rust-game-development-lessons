@@ -61,14 +61,28 @@ for i in 0..TARGET_COUNT {
 ## Попадание и вылет за край
 
 На каждом кадре с пулей может случиться одно из двух: она улетает за
-край экрана (как в уроках [«Пули пропадают за краем»](../turret-bounds/)
-и [«Настоящий край экрана»](../turret-cleanup/)) или задевает мишень —
-сумма радиусов больше расстояния между ними, та же проверка, что и в
-уроке [«Пересечение кружков»](../circle-intersection/):
+край экрана или задевает мишень.
+
+За край — та же функция `inside_rectangle`, что и в уроках [«Пули
+пропадают за краем»](../turret-bounds/) и [«Настоящий край
+экрана»](../turret-cleanup/), только наоборот: там пуля оставалась,
+пока была **внутри** экрана, а здесь нужно поймать момент, когда она
+уже **снаружи** — просто отрицание через `!`, как в [«Кружки
+исчезают»](../circles-vanish/):
+
+```rust
+let outside = !inside_rectangle(bullet.x, bullet.y, 0.0, 0.0, screen_width(), screen_height());
+```
+
+Задела мишень — сумма радиусов больше расстояния между центрами, та же
+проверка, что и в уроке [«Пересечение кружков»](../circle-intersection/):
 
 ```rust
 distance(bullet.x, bullet.y, target_x, target_y) < BULLET_RADIUS + TARGET_RADIUS
 ```
+
+Пуле за краем сравнивать себя с мишенями незачем — для этого обычный
+`if`/`else`, как в [«Иначе»](../else/), а не что-то новое.
 
 В уроке [«HashMap»](../hashmap/) для того же правила — «сначала
 прочитать, потом удалить» — хватало одной переменной, потому что за
@@ -125,6 +139,12 @@ fn distance(from_x: f32, from_y: f32, to_x: f32, to_y: f32) -> f32 {
     let dx = to_x - from_x;
     let dy = to_y - from_y;
     (dx * dx + dy * dy).sqrt()
+}
+
+// Точка внутри прямоугольника — та же функция, что и в уроке «Пули
+// пропадают за краем».
+fn inside_rectangle(x: f32, y: f32, rect_x: f32, rect_y: f32, rect_width: f32, rect_height: f32) -> bool {
+    x >= rect_x && x <= rect_x + rect_width && y >= rect_y && y <= rect_y + rect_height
 }
 
 #[macroquad::main("Стрельба по мишеням")]
@@ -194,23 +214,19 @@ async fn main() {
         let mut targets_to_remove: Vec<u32> = Vec::new();
 
         for (&bullet_id, bullet) in &bullets {
-            // Пуля покинула экран — сразу на вылет, до мишеней дело не доходит.
-            let outside = bullet.x < 0.0
-                || bullet.x > screen_width()
-                || bullet.y < 0.0
-                || bullet.y > screen_height();
+            // Пуля уже вне экрана — сразу на вылет, до мишеней дело не доходит.
+            let outside = !inside_rectangle(bullet.x, bullet.y, 0.0, 0.0, screen_width(), screen_height());
 
             if outside {
                 bullets_to_remove.push(bullet_id);
-                continue;
-            }
-
-            // Иначе проверяем пересечение с каждой мишенью — сумма
-            // радиусов, как в уроке «Пересечение кружков».
-            for (&target_id, &(target_x, target_y)) in &targets {
-                if distance(bullet.x, bullet.y, target_x, target_y) < BULLET_RADIUS + TARGET_RADIUS {
-                    bullets_to_remove.push(bullet_id);
-                    targets_to_remove.push(target_id);
+            } else {
+                // Иначе проверяем пересечение с каждой мишенью — сумма
+                // радиусов, как в уроке «Пересечение кружков».
+                for (&target_id, &(target_x, target_y)) in &targets {
+                    if distance(bullet.x, bullet.y, target_x, target_y) < BULLET_RADIUS + TARGET_RADIUS {
+                        bullets_to_remove.push(bullet_id);
+                        targets_to_remove.push(target_id);
+                    }
                 }
             }
         }
@@ -270,6 +286,10 @@ cargo run
 - `bullets.values_mut()` и `targets.values()` — доступ только к
   значениям `HashMap`, без ключей: здесь не нужен сам ID, чтобы подвинуть
   или нарисовать пулю и мишень.
+- `!inside_rectangle(...)` — та же функция, что и в уроках [«Пули
+  пропадают за краем»](../turret-bounds/) и [«Настоящий край
+  экрана»](../turret-cleanup/), только с отрицанием: там проверяли «ещё
+  внутри», здесь — «уже снаружи».
 - Попадание проверяется той же формулой, что и в уроке [«Пересечение
   кружков»](../circle-intersection/) — сумма радиусов больше расстояния
   между центрами.

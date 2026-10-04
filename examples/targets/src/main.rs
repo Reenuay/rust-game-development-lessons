@@ -40,6 +40,12 @@ fn distance(from_x: f32, from_y: f32, to_x: f32, to_y: f32) -> f32 {
     (dx * dx + dy * dy).sqrt()
 }
 
+// Точка внутри прямоугольника — та же функция, что и в уроке «Пули
+// пропадают за краем».
+fn inside_rectangle(x: f32, y: f32, rect_x: f32, rect_y: f32, rect_width: f32, rect_height: f32) -> bool {
+    x >= rect_x && x <= rect_x + rect_width && y >= rect_y && y <= rect_y + rect_height
+}
+
 #[macroquad::main("Стрельба по мишеням")]
 async fn main() {
     // Турель всегда стоит в центре экрана.
@@ -107,23 +113,19 @@ async fn main() {
         let mut targets_to_remove: Vec<u32> = Vec::new();
 
         for (&bullet_id, bullet) in &bullets {
-            // Пуля покинула экран — сразу на вылет, до мишеней дело не доходит.
-            let outside = bullet.x < 0.0
-                || bullet.x > screen_width()
-                || bullet.y < 0.0
-                || bullet.y > screen_height();
+            // Пуля уже вне экрана — сразу на вылет, до мишеней дело не доходит.
+            let outside = !inside_rectangle(bullet.x, bullet.y, 0.0, 0.0, screen_width(), screen_height());
 
             if outside {
                 bullets_to_remove.push(bullet_id);
-                continue;
-            }
-
-            // Иначе проверяем пересечение с каждой мишенью — сумма
-            // радиусов, как в уроке «Пересечение кружков».
-            for (&target_id, &(target_x, target_y)) in &targets {
-                if distance(bullet.x, bullet.y, target_x, target_y) < BULLET_RADIUS + TARGET_RADIUS {
-                    bullets_to_remove.push(bullet_id);
-                    targets_to_remove.push(target_id);
+            } else {
+                // Иначе проверяем пересечение с каждой мишенью — сумма
+                // радиусов, как в уроке «Пересечение кружков».
+                for (&target_id, &(target_x, target_y)) in &targets {
+                    if distance(bullet.x, bullet.y, target_x, target_y) < BULLET_RADIUS + TARGET_RADIUS {
+                        bullets_to_remove.push(bullet_id);
+                        targets_to_remove.push(target_id);
+                    }
                 }
             }
         }
