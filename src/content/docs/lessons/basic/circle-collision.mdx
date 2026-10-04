@@ -1,5 +1,5 @@
 ---
-title: Столкновение кружков
+title: Пересечение кружков
 description: distance < radius работало для точки и круга. А если оба объекта — полноценные круги, каждый со своим радиусом?
 sidebar:
   order: 74
@@ -35,13 +35,13 @@ distance(a.x, a.y, b.x, b.y) < a.radius + b.radius
 
 ```rust
 impl Circle {
-    fn collides_with(&self, other: &Circle) -> bool {
+    fn intersects_with(&self, other: &Circle) -> bool {
         distance(self.x, self.y, other.x, other.y) < self.radius + other.radius
     }
 }
 ```
 
-Вызывается он так: `a.collides_with(&b)` — читается почти как
+Вызывается он так: `a.intersects_with(&b)` — читается почти как
 обычное предложение.
 
 ## Код
@@ -60,7 +60,7 @@ struct Circle {
 
 impl Circle {
     // Пересекается ли этот круг с другим — сумма радиусов против расстояния.
-    fn collides_with(&self, other: &Circle) -> bool {
+    fn intersects_with(&self, other: &Circle) -> bool {
         distance(self.x, self.y, other.x, other.y) < self.radius + other.radius
     }
 }
@@ -72,7 +72,7 @@ fn distance(from_x: f32, from_y: f32, to_x: f32, to_y: f32) -> f32 {
     (dx * dx + dy * dy).sqrt()
 }
 
-#[macroquad::main("Столкновение кружков")]
+#[macroquad::main("Пересечение кружков")]
 async fn main() {
     loop {
         clear_background(BLACK);
@@ -89,7 +89,7 @@ async fn main() {
         let moving = Circle { x: mouse_x, y: mouse_y, radius: 80.0 };
 
         // Цвет одинаковый у обоих — меняется, как только они пересеклись.
-        let color = if moving.collides_with(&still) { RED } else { YELLOW };
+        let color = if moving.intersects_with(&still) { RED } else { YELLOW };
 
         draw_circle(still.x, still.y, still.radius, color);
         draw_circle(moving.x, moving.y, moving.radius, color);
@@ -115,7 +115,7 @@ cargo run
 
 - `distance(...) < radius_a + radius_b` — то же сравнение расстояния,
   что уже было много раз, просто с суммой двух радиусов вместо одного.
-- `collides_with` — метод на `Circle`, а не отдельная функция:
+- `intersects_with` — метод на `Circle`, а не отдельная функция:
   `self` — это тот круг, у которого метод вызвали, `other` — второй
   круг, переданный в скобках.
 - `&self` и `&other: &Circle` — оба берутся по ссылке, а не в

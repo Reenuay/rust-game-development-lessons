@@ -9,7 +9,7 @@ struct Circle {
 
 impl Circle {
     // Пересекается ли этот круг с другим — сумма радиусов против расстояния.
-    fn collides_with(&self, other: &Circle) -> bool {
+    fn intersects_with(&self, other: &Circle) -> bool {
         distance(self.x, self.y, other.x, other.y) < self.radius + other.radius
     }
 }
@@ -21,7 +21,7 @@ fn distance(from_x: f32, from_y: f32, to_x: f32, to_y: f32) -> f32 {
     (dx * dx + dy * dy).sqrt()
 }
 
-#[macroquad::main("Столкновение кружков")]
+#[macroquad::main("Пересечение кружков")]
 async fn main() {
     loop {
         clear_background(BLACK);
@@ -38,7 +38,7 @@ async fn main() {
         let moving = Circle { x: mouse_x, y: mouse_y, radius: 80.0 };
 
         // Цвет одинаковый у обоих — меняется, как только они пересеклись.
-        let color = if moving.collides_with(&still) { RED } else { YELLOW };
+        let color = if moving.intersects_with(&still) { RED } else { YELLOW };
 
         draw_circle(still.x, still.y, still.radius, color);
         draw_circle(moving.x, moving.y, moving.radius, color);
