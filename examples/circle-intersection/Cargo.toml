@@ -1,5 +1,5 @@
 [package]
-name = "circle-collision"
+name = "circle-intersection"
 version = "0.1.0"
 edition = "2021"
 

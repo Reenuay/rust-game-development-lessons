@@ -94,14 +94,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "circle-collision"
+name = "circle-id"
 version = "0.1.0"
 dependencies = [
  "macroquad",
 ]
 
 [[package]]
-name = "circle-id"
+name = "circle-intersection"
 version = "0.1.0"
 dependencies = [
  "macroquad",
