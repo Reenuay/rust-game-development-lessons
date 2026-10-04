@@ -43,6 +43,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "auto-increment"
+version = "0.1.0"
+dependencies = [
+ "macroquad",
+]
+
+[[package]]
 name = "autocfg"
 version = "1.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
