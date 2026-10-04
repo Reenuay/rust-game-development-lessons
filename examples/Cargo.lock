@@ -613,6 +613,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "targets"
+version = "0.1.0"
+dependencies = [
+ "macroquad",
+]
+
+[[package]]
 name = "text-on-screen"
 version = "0.1.0"
 dependencies = [

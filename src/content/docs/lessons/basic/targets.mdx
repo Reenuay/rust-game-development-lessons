@@ -1,0 +1,268 @@
+---
+title: Стрельба по мишеням
+description: Собираем турель, пули и мишени в одну игру — два разных HashMap, своя пара ID-счётчиков и попадание, которое убирает сразу из обеих коллекций.
+sidebar:
+  order: 76
+---
+
+import WasmCanvas from '../../../../components/WasmCanvas.svelte';
+
+Турель уже умеет стрелять, пули умеют пропадать за краем экрана, а
+пересечение кругов мы считать умеем. Осталось собрать это вместе: турель
+в центре экрана стреляет в сторону мыши, а вокруг неё стоят мишени,
+которые пули сбивают.
+
+## Мишени в кольце вокруг турели
+
+Мишеней пятнадцать, и расставляются они один раз, при старте игры — в
+отличие от пуль, им не нужно появляться по одной в процессе игры.
+Случайную точку для каждой берём не любую на экране, а в пределах кольца
+вокруг турели: не слишком близко, чтобы не упираться в саму турель, и не
+слишком далеко, чтобы не вылезти за край.
+
+Для этого случайным делаем не `x` и `y` по отдельности (как в уроке
+[«Случайная точка»](../random/)), а угол и дистанцию от центра:
+
+```rust
+let angle = rand::gen_range(0.0, 2.0 * PI);
+let target_distance = rand::gen_range(min_distance, max_distance);
+
+let target_x = center_x + angle.cos() * target_distance;
+let target_y = center_y + angle.sin() * target_distance;
+```
+
+Это тот же приём, что уже был в уроке [«Вращение»](../rotation/) — угол
+через `.cos()` и `.sin()` даёт точку на окружности, — только там радиус
+окружности всегда был равен 1, а здесь это случайное число. `min_distance`
+берём равным четверти высоты экрана, `max_distance` — половине: тогда
+мишень никогда не окажется впритык к турели и никогда не вылезет за
+верхний или нижний край.
+
+## Пули и мишени — два разных ID
+
+Мишени и пули живут в двух разных `HashMap`, и у каждой — свой отдельный
+счётчик ID. Мишени нумеруются один раз при старте, тем же способом, что
+и в уроке [«HashMap»](../hashmap/) — просто `i` из цикла создания. А пули
+появляются по одной, по клику, так что для них нужен растущий счётчик
+из урока [«Автоинкремент»](../auto-increment/).
+
+Оба счётчика начинаются с нуля — и это нормально: мишень с ID `0` и пуля
+с ID `0` не перепутаются, потому что лежат в разных `HashMap`. ID мишени
+ищется только среди мишеней, ID пули — только среди пуль, так что
+совпадающие числа в двух разных коллекциях друг другу никак не мешают.
+
+## Попадание и вылет за край
+
+На каждом кадре с пулей может случиться одно из двух: она улетает за
+край экрана (как в уроках [«Пули пропадают за краем»](../turret-bounds/)
+и [«Настоящий край экрана»](../turret-cleanup/)) или задевает мишень —
+сумма радиусов больше расстояния между ними, та же проверка, что и в
+уроке [«Пересечение кружков»](../circle-intersection/):
+
+```rust
+distance(bullet.x, bullet.y, target_x, target_y) < BULLET_RADIUS + TARGET_RADIUS
+```
+
+Здесь две коллекции сразу, а не одна, поэтому попадание — это пуля из
+`bullets` и мишень из `targets`, которые нужно убрать вместе, одним и тем
+же пересечением. Как и в уроке [«HashMap»](../hashmap/), удалять во время
+чтения нельзя — поэтому сначала только читаем обе коллекции и собираем
+ID на вылет в два отдельных списка, а убираем из `bullets` и `targets`
+уже после того, как чтение закончилось.
+
+## Код
+
+Замени содержимое `src/main.rs` на это:
+
+```rust title="src/main.rs"
+use macroquad::prelude::*;
+use std::collections::HashMap;
+use std::f32::consts::PI;
+
+// Радиус у всех мишеней одинаковый — фиксированный, как в уроке «Константы».
+const TARGET_RADIUS: f32 = 55.0;
+// Радиус пули — свой, поменьше.
+const BULLET_RADIUS: f32 = 8.0;
+// Скорость пули — одна и та же на каждом кадре.
+const SPEED: f32 = 8.0;
+// Сколько мишеней расставляем при старте.
+const TARGET_COUNT: usize = 15;
+
+// Одна пуля: положение и зафиксированное направление полёта.
+struct Bullet {
+    x: f32,
+    y: f32,
+    direction_x: f32,
+    direction_y: f32,
+}
+
+// Своя функция: по двум точкам считает направление от первой ко второй,
+// как в уроке «Свои функции».
+fn direction(from_x: f32, from_y: f32, to_x: f32, to_y: f32) -> (f32, f32) {
+    let dx = to_x - from_x;
+    let dy = to_y - from_y;
+    let distance = (dx * dx + dy * dy).sqrt();
+
+    if distance > 0.0 {
+        (dx / distance, dy / distance)
+    } else {
+        (1.0, 0.0)
+    }
+}
+
+// Своя функция: расстояние между двумя точками, как в уроке «Расстояние».
+fn distance(from_x: f32, from_y: f32, to_x: f32, to_y: f32) -> f32 {
+    let dx = to_x - from_x;
+    let dy = to_y - from_y;
+    (dx * dx + dy * dy).sqrt()
+}
+
+#[macroquad::main("Стрельба по мишеням")]
+async fn main() {
+    // Турель всегда стоит в центре экрана.
+    let center_x = screen_width() / 2.0;
+    let center_y = screen_height() / 2.0;
+
+    // Дистанция мишеней от турели — не ближе четверти высоты экрана,
+    // не дальше половины, чтобы ни одна не оказалась за краем.
+    let max_distance = screen_height() / 2.0;
+    let min_distance = max_distance / 2.0;
+
+    // Мишени — фиксированный набор, появляется один раз при старте.
+    let mut targets: HashMap<u32, (f32, f32)> = HashMap::new();
+    for i in 0..TARGET_COUNT {
+        // Случайный угол и случайная дистанция вместе дают случайную
+        // точку в кольце вокруг турели (как в уроке «Вращение»).
+        let angle = rand::gen_range(0.0, 2.0 * PI);
+        let target_distance = rand::gen_range(min_distance, max_distance);
+
+        let target_x = center_x + angle.cos() * target_distance;
+        let target_y = center_y + angle.sin() * target_distance;
+
+        targets.insert(i as u32, (target_x, target_y));
+    }
+
+    // Пули появляются по одной, по клику — свой HashMap и свой счётчик
+    // ID, никак не связанный со счётчиком мишеней выше.
+    let mut bullets: HashMap<u32, Bullet> = HashMap::new();
+    let mut next_id: u32 = 0;
+
+    loop {
+        clear_background(BLACK);
+
+        // Координаты мыши.
+        let (mouse_x, mouse_y) = mouse_position();
+
+        // Турель мгновенно смотрит в сторону мыши.
+        let (direction_x, direction_y) = direction(center_x, center_y, mouse_x, mouse_y);
+
+        // Глазик — центр турели плюс направление, растянутое на 25 пикселей.
+        let eye_x = center_x + direction_x * 25.0;
+        let eye_y = center_y + direction_y * 25.0;
+
+        // Кнопка мыши только что нажата — новая пуля из глазика.
+        if is_mouse_button_pressed(MouseButton::Left) {
+            bullets.insert(
+                next_id,
+                Bullet { x: eye_x, y: eye_y, direction_x, direction_y },
+            );
+            next_id += 1;
+        }
+
+        // Двигаем каждую пулю её собственным направлением.
+        for bullet in bullets.values_mut() {
+            bullet.x += bullet.direction_x * SPEED;
+            bullet.y += bullet.direction_y * SPEED;
+        }
+
+        // Сначала только читаем bullets и targets — удалять во время
+        // чтения нельзя, поэтому собираем ID на вылет в отдельные списки.
+        let mut bullets_to_remove: Vec<u32> = Vec::new();
+        let mut targets_to_remove: Vec<u32> = Vec::new();
+
+        for (&bullet_id, bullet) in &bullets {
+            // Пуля покинула экран — сразу на вылет, до мишеней дело не доходит.
+            let outside = bullet.x < 0.0
+                || bullet.x > screen_width()
+                || bullet.y < 0.0
+                || bullet.y > screen_height();
+
+            if outside {
+                bullets_to_remove.push(bullet_id);
+                continue;
+            }
+
+            // Иначе проверяем пересечение с каждой мишенью — сумма
+            // радиусов, как в уроке «Пересечение кружков».
+            for (&target_id, &(target_x, target_y)) in &targets {
+                if distance(bullet.x, bullet.y, target_x, target_y) < BULLET_RADIUS + TARGET_RADIUS {
+                    bullets_to_remove.push(bullet_id);
+                    targets_to_remove.push(target_id);
+                }
+            }
+        }
+
+        // Теперь, когда чтение закончилось, убираем всё, что попало в списки.
+        for id in bullets_to_remove {
+            bullets.remove(&id);
+        }
+        for id in targets_to_remove {
+            targets.remove(&id);
+        }
+
+        // Мишени — все одного цвета, отличного и от турели, и от пуль.
+        for &(target_x, target_y) in targets.values() {
+            draw_circle(target_x, target_y, TARGET_RADIUS, RED);
+        }
+
+        // Тело турели.
+        draw_circle(center_x, center_y, 40.0, BLUE);
+        // Глазик — смотрит на мышь.
+        draw_circle(eye_x, eye_y, 10.0, WHITE);
+
+        // Пули.
+        for bullet in bullets.values() {
+            draw_circle(bullet.x, bullet.y, BULLET_RADIUS, YELLOW);
+        }
+
+        next_frame().await;
+    }
+}
+```
+
+Запусти как обычно:
+
+```sh
+cargo run
+```
+
+Веди мышью — турель поворачивается следом. Кликай — летят пули; попавшая
+в мишень пуля и сама мишень обе пропадают, а пуля, никуда не попавшая,
+просто исчезает за краем экрана. Попробуй сам:
+
+<WasmCanvas name="targets" client:load />
+
+## Что здесь происходит
+
+- Мишени создаются один раз при старте, в кольце вокруг турели —
+  случайный угол и случайная дистанция от `min_distance` до
+  `max_distance`, разложенные через `.cos()`/`.sin()` (как в уроке
+  [«Вращение»](../rotation/)).
+- `targets: HashMap<u32, (f32, f32)>` и `bullets: HashMap<u32, Bullet>` —
+  две независимые коллекции, у каждой свой набор ID: мишени нумеруются
+  индексом цикла создания (как в уроке [«HashMap»](../hashmap/)), пули —
+  отдельным растущим счётчиком `next_id` (как в уроке
+  [«Автоинкремент»](../auto-increment/)).
+- `bullets.values_mut()` и `targets.values()` — доступ только к
+  значениям `HashMap`, без ключей: здесь не нужен сам ID, чтобы подвинуть
+  или нарисовать пулю и мишень.
+- Попадание проверяется той же формулой, что и в уроке [«Пересечение
+  кружков»](../circle-intersection/) — сумма радиусов больше расстояния
+  между центрами.
+- `bullets_to_remove` и `targets_to_remove` собираются во время чтения, а
+  `.remove()` вызывается только после — та же причина, что и в уроке
+  [«HashMap»](../hashmap/): нельзя удалять из коллекции, пока её же
+  перебираешь.
+- Если на одну мишень за кадр попало сразу две пули, её ID просто дважды
+  попадёт в `targets_to_remove` — второй `.remove()` с тем же ID ничего
+  не делает, мишень уже убрана первым.
