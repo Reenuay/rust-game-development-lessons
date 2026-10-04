@@ -51,12 +51,15 @@ async fn main() {
     let max_distance = screen_height() / 2.0;
     let min_distance = max_distance / 2.0;
 
+    // Угол между соседними мишенями — полный круг, поделённый на их число.
+    let angle_step = 2.0 * PI / TARGET_COUNT as f32;
+
     // Мишени — фиксированный набор, появляется один раз при старте.
     let mut targets: HashMap<u32, (f32, f32)> = HashMap::new();
     for i in 0..TARGET_COUNT {
-        // Случайный угол и случайная дистанция вместе дают случайную
-        // точку в кольце вокруг турели (как в уроке «Вращение»).
-        let angle = rand::gen_range(0.0, 2.0 * PI);
+        // Угол растёт равномерно, фиксированным шагом (как в уроке
+        // «Цикл for»), а дистанция от центра у каждой мишени своя, случайная.
+        let angle = angle_step * (i as f32);
         let target_distance = rand::gen_range(min_distance, max_distance);
 
         let target_x = center_x + angle.cos() * target_distance;
