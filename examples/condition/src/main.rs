@@ -5,7 +5,7 @@ async fn main() {
     loop {
         clear_background(BLACK);
 
-        // Центр экрана — нужен сразу в трёх местах ниже, поэтому с именем.
+        // Центр экрана — считаем один раз и используем ниже несколько раз.
         let center_x = screen_width() / 2.0;
         let center_y = screen_height() / 2.0;
 
