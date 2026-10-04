@@ -88,8 +88,12 @@ async fn main() {
         let (mouse_x, mouse_y) = mouse_position();
         let moving = Circle { x: mouse_x, y: mouse_y, radius: 80.0 };
 
-        // Цвет одинаковый у обоих — меняется, как только они пересеклись.
-        let color = if moving.intersects_with(&still) { RED } else { YELLOW };
+        // Цвет одинаковый у обоих — по умолчанию жёлтый, меняется на
+        // красный, как только круги пересеклись.
+        let mut color = YELLOW;
+        if moving.intersects_with(&still) {
+            color = RED;
+        }
 
         draw_circle(still.x, still.y, still.radius, color);
         draw_circle(moving.x, moving.y, moving.radius, color);
