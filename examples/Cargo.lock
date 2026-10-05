@@ -599,6 +599,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "srand"
+version = "0.1.0"
+dependencies = [
+ "macroquad",
+]
+
+[[package]]
 name = "steering"
 version = "0.1.0"
 dependencies = [
