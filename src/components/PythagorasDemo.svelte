@@ -219,19 +219,6 @@
     <text x={squareBCenter.x} y={squareBCenter.y} class="area-label b-label" text-anchor="middle" dominant-baseline="middle" style={`opacity: ${t}`}>b²</text>
   </svg>
 
-  <p class="demo-legend">
-    Один и тот же квадрат со стороной <code>a + b</code>, одни и те же
-    четыре треугольника (катеты <code>a</code> и <code>b</code>,
-    гипотенуза <code>c</code>) — просто уложенные по-разному. Слева
-    (сейчас) они оставляют посередине один повёрнутый квадрат площадью
-    <code>c²</code>. Нажми «Переставить» — те же четыре треугольника
-    переедут по тому же большому квадрату и оставят вместо одного
-    повёрнутого квадрата два обычных, площадью <code>a²</code> и
-    <code>b²</code>. Площадь большого квадрата не изменилась, площадь
-    четырёх треугольников — тоже, значит и оставшаяся площадь обязана
-    быть той же: <code>c² = a² + b²</code>.
-  </p>
-
   <p class="demo-numbers">
     c² = {formatNum(c * c)} &nbsp;&nbsp; a² + b² = {formatNum(a * a + b * b)}
   </p>
@@ -255,7 +242,6 @@
     width: 100%;
   }
 
-  .demo-legend,
   .demo-numbers {
     margin: 0.75rem 0;
   }
