@@ -209,6 +209,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "distance-squared"
+version = "0.1.0"
+dependencies = [
+ "macroquad",
+]
+
+[[package]]
 name = "drag-radius"
 version = "0.1.0"
 dependencies = [
