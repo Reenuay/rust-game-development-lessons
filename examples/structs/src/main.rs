@@ -13,10 +13,6 @@ struct Circle {
 
 #[macroquad::main("Свои структуры")]
 async fn main() {
-    // Без этого macroquad каждый запуск начинает с одних и тех же
-    // «случайных» чисел. Время запуска даёт новый набор каждый раз.
-    rand::srand(macroquad::miniquad::date::now() as u64);
-
     // Список уже нарисованных кружков — сначала пустой.
     let mut circles: Vec<Circle> = Vec::new();
 

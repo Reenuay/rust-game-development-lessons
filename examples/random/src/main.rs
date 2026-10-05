@@ -2,10 +2,6 @@ use macroquad::prelude::*;
 
 #[macroquad::main("Случайная точка")]
 async fn main() {
-    // Без этого macroquad каждый запуск начинает с одних и тех же
-    // «случайных» чисел. Время запуска даёт новый набор каждый раз.
-    rand::srand(macroquad::miniquad::date::now() as u64);
-
     // Кружок стартует по центру экрана.
     let mut x = screen_width() / 2.0;
     let mut y = screen_height() / 2.0;

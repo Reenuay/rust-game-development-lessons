@@ -5,10 +5,6 @@ const COLORS: [Color; 4] = [YELLOW, RED, GREEN, BLUE];
 
 #[macroquad::main("Разноцветные кружки")]
 async fn main() {
-    // Без этого macroquad каждый запуск начинает с одних и тех же
-    // «случайных» чисел. Время запуска даёт новый набор каждый раз.
-    rand::srand(macroquad::miniquad::date::now() as u64);
-
     // Список кружков: координаты клика и выбранный для него цвет.
     let mut circles: Vec<(f32, f32, Color)> = Vec::new();
 

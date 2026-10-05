@@ -20,10 +20,6 @@ fn distance(from_x: f32, from_y: f32, to_x: f32, to_y: f32) -> f32 {
 
 #[macroquad::main("Кружки исчезают")]
 async fn main() {
-    // Без этого macroquad каждый запуск начинает с одних и тех же
-    // «случайных» чисел. Время запуска даёт новый набор каждый раз.
-    rand::srand(macroquad::miniquad::date::now() as u64);
-
     // Начальный набор кружков — случайные позиции, радиусы и цвета.
     let mut circles: Vec<Circle> = Vec::new();
     for _ in 0..10 {

@@ -48,10 +48,6 @@ fn inside_rectangle(x: f32, y: f32, rect_x: f32, rect_y: f32, rect_width: f32, r
 
 #[macroquad::main("Стрельба по мишеням")]
 async fn main() {
-    // Без этого macroquad каждый запуск начинает с одних и тех же
-    // «случайных» чисел. Время запуска даёт новый набор каждый раз.
-    rand::srand(macroquad::miniquad::date::now() as u64);
-
     // Турель всегда стоит в центре экрана.
     let center_x = screen_width() / 2.0;
     let center_y = screen_height() / 2.0;
