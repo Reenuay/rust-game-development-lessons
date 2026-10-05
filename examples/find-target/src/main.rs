@@ -73,7 +73,7 @@ async fn main() {
         for (&id, &(x, y)) in &targets {
             // Расстояние от турели до этой мишени.
             let d = distance(center_x, center_y, x, y);
-            // Ближе, чем всё, что видели раньше, — запоминаем её.
+            // Строго ближе, чем всё, что видели раньше, — запоминаем её.
             if d < best_distance {
                 best_distance = d;
                 best_id = id;
