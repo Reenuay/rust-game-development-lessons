@@ -213,6 +213,15 @@
       <line x1={rightAngle.x} y1={rightAngle.y} x2={legBEnd.x} y2={legBEnd.y} class="edge-b" />
       <line x1={legAEnd.x} y1={legAEnd.y} x2={legBEnd.x} y2={legBEnd.y} class="edge-c" />
     {/each}
+    {#each triangleVertices as pts, i}
+      <text
+        x={(pts[0].x + pts[1].x + pts[2].x) / 3}
+        y={(pts[0].y + pts[1].y + pts[2].y) / 3}
+        class="triangle-number"
+        text-anchor="middle"
+        dominant-baseline="middle"
+      >{i + 1}</text>
+    {/each}
 
     <text x={tiltedCenter.x} y={tiltedCenter.y} class="area-label c-label" text-anchor="middle" dominant-baseline="middle" style={`opacity: ${1 - t}`}>c²</text>
     <text x={squareACenter.x} y={squareACenter.y} class="area-label a-label" text-anchor="middle" dominant-baseline="middle" style={`opacity: ${t}`}>a²</text>
@@ -281,6 +290,13 @@
   .b-square {
     fill: rgba(34, 197, 94, 0.25);
     stroke: #22c55e;
+  }
+
+  .triangle-number {
+    font-size: 20px;
+    font-weight: 700;
+    font-family: var(--__sl-font-mono, ui-monospace, monospace);
+    fill: var(--sl-color-gray-2, #555);
   }
 
   .area-label {
