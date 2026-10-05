@@ -43,6 +43,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "auto-fire"
+version = "0.1.0"
+dependencies = [
+ "macroquad",
+]
+
+[[package]]
 name = "auto-increment"
 version = "0.1.0"
 dependencies = [
