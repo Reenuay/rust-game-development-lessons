@@ -20,6 +20,10 @@ fn distance(from_x: f32, from_y: f32, to_x: f32, to_y: f32) -> f32 {
 
 #[macroquad::main("Радиус мышью")]
 async fn main() {
+    // Без этого macroquad каждый запуск начинает с одних и тех же
+    // «случайных» чисел. Время запуска даёт новый набор каждый раз.
+    rand::srand(macroquad::miniquad::date::now() as u64);
+
     // Список уже сохранённых кружков — сначала пустой.
     let mut circles: Vec<Circle> = Vec::new();
 
