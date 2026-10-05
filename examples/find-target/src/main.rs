@@ -81,14 +81,19 @@ async fn main() {
             }
         }
 
-        // Куда смотрит турель: на ближайшую цель, а если целей нет — вправо.
-        let (direction_x, direction_y) = if found {
+        // Точка, на которую смотрит турель. Если целей нет — точка
+        // правее турели.
+        let mut look_x = center_x + 100.0;
+        let mut look_y = center_y;
+        if found {
             // Достаём координаты выбранной цели по её ID.
             let (target_x, target_y) = targets[&best_id];
-            direction(center_x, center_y, target_x, target_y)
-        } else {
-            (1.0, 0.0)
-        };
+            look_x = target_x;
+            look_y = target_y;
+        }
+
+        // Направление от турели к этой точке.
+        let (direction_x, direction_y) = direction(center_x, center_y, look_x, look_y);
 
         // Глазик — центр турели плюс направление, растянутое на 25 пикселей.
         let eye_x = center_x + direction_x * 25.0;
@@ -105,9 +110,14 @@ async fn main() {
             }
         }
 
-        // Мишени: выбранная оранжевая, остальные красные.
+        // Рисуем мишени.
         for (&id, &(x, y)) in &targets {
-            let color = if found && id == best_id { ORANGE } else { RED };
+            // Сначала красим мишень в красный.
+            let mut color = RED;
+            // Если это выбранная цель — перекрашиваем в оранжевый.
+            if found && id == best_id {
+                color = ORANGE;
+            }
             draw_circle(x, y, TARGET_RADIUS, color);
         }
 
