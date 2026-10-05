@@ -81,7 +81,7 @@ async fn main() {
     loop {
         clear_background(BLACK);
 
-        // Сколько секунд прошло с прошлого кадра.
+        // dt (delta time) — сколько секунд прошло между прошлым кадром и этим.
         let dt = get_frame_time();
 
         // Турель стоит в центре экрана.

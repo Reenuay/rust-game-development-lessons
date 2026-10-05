@@ -62,7 +62,7 @@ async fn main() {
         let speed = f32::from_bits(SPEED.load(Ordering::Relaxed));
         let shoot_interval = f32::from_bits(INTERVAL.load(Ordering::Relaxed));
 
-        // Сколько секунд прошло с прошлого кадра.
+        // dt (delta time) — сколько секунд прошло между прошлым кадром и этим.
         let dt = get_frame_time();
 
         // Турель стоит в центре экрана.
