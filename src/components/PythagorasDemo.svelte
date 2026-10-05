@@ -86,13 +86,20 @@
     return [p0[0] + (p1[0] - p0[0]) * progress, p0[1] + (p1[1] - p0[1]) * progress];
   }
 
-  let trianglePolylines = $derived(
+  // Each triangle's three SVG vertices, in [rightAngle, legAEnd,
+  // legBEnd] order, so the edges can be drawn as three separate
+  // color-coded segments: rightAngle–legAEnd is the `a` leg (red),
+  // rightAngle–legBEnd is the `b` leg (green), legAEnd–legBEnd is the
+  // hypotenuse `c` (blue) — the same three colors PointsTriangleDemo
+  // uses for dx/dy/distance, so the two demos read as the same idea.
+  let triangleVertices = $derived(
     trianglesA.map((triA, i) => {
       const triB = trianglesB[i];
-      const pts = triA.map((p0, j) => toSvg(lerpPoint(p0, triB[j], t)));
-      return pointsAttr(pts);
+      return triA.map((p0, j) => toSvg(lerpPoint(p0, triB[j], t)));
     }),
   );
+
+  let trianglePolylines = $derived(triangleVertices.map((pts) => pointsAttr(pts)));
 
   // Leftover regions — not morphed, just cross-faded: the tilted
   // square (visible at t=0) fades out as the two corner squares
@@ -201,6 +208,11 @@
     {#each trianglePolylines as pts}
       <polygon points={pts} class="triangle" />
     {/each}
+    {#each triangleVertices as [rightAngle, legAEnd, legBEnd]}
+      <line x1={rightAngle.x} y1={rightAngle.y} x2={legAEnd.x} y2={legAEnd.y} class="edge-a" />
+      <line x1={rightAngle.x} y1={rightAngle.y} x2={legBEnd.x} y2={legBEnd.y} class="edge-b" />
+      <line x1={legAEnd.x} y1={legAEnd.y} x2={legBEnd.x} y2={legBEnd.y} class="edge-c" />
+    {/each}
 
     <text x={tiltedCenter.x} y={tiltedCenter.y} class="area-label c-label" text-anchor="middle" dominant-baseline="middle" style={`opacity: ${1 - t}`}>c²</text>
     <text x={squareACenter.x} y={squareACenter.y} class="area-label a-label" text-anchor="middle" dominant-baseline="middle" style={`opacity: ${t}`}>a²</text>
@@ -261,10 +273,8 @@
   }
 
   .triangle {
-    fill: var(--sl-color-accent-low, rgba(100, 150, 255, 0.25));
-    stroke: var(--sl-color-accent);
-    stroke-width: 2;
-    stroke-linejoin: round;
+    fill: var(--sl-color-gray-5, rgba(140, 140, 150, 0.2));
+    stroke: none;
   }
 
   .leftover-square {
@@ -273,14 +283,18 @@
   }
 
   .c-square {
-    fill: rgba(239, 68, 68, 0.3);
+    fill: rgba(59, 130, 246, 0.25);
+    stroke: #3b82f6;
+  }
+
+  .a-square {
+    fill: rgba(239, 68, 68, 0.25);
     stroke: #ef4444;
   }
 
-  .a-square,
   .b-square {
-    fill: rgba(250, 204, 21, 0.3);
-    stroke: #facc15;
+    fill: rgba(34, 197, 94, 0.25);
+    stroke: #22c55e;
   }
 
   .area-label {
@@ -290,12 +304,33 @@
   }
 
   .c-label {
+    fill: #3b82f6;
+  }
+
+  .a-label {
     fill: #ef4444;
   }
 
-  .a-label,
   .b-label {
-    fill: #ca8a04;
+    fill: #22c55e;
+  }
+
+  .edge-a {
+    stroke: #ef4444;
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+
+  .edge-b {
+    stroke: #22c55e;
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+
+  .edge-c {
+    stroke: #3b82f6;
+    stroke-width: 3;
+    stroke-linecap: round;
   }
 
   .controls {
