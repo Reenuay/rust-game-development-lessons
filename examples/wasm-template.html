@@ -110,6 +110,18 @@
         };
       }
 
+      // mq_js_bundle.js only listens for mouseup on the canvas itself. If
+      // a button is pressed on the canvas and released *outside* the
+      // iframe, the iframe never hears about the release, and macroquad
+      // keeps reporting the button as held — a hold-to-fire turret, say,
+      // never stops. Capturing the pointer on press makes the browser
+      // keep delivering move/up events to the canvas until the button is
+      // released, wherever the cursor has gone. Mouse only: touch already
+      // has this behaviour built in.
+      glcanvas.addEventListener('pointerdown', (event) => {
+        if (event.pointerType === 'mouse') glcanvas.setPointerCapture(event.pointerId);
+      });
+
       load("{{NAME}}.wasm");
     </script>
   </body>
