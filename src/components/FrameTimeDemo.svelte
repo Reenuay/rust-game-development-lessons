@@ -6,35 +6,37 @@
 
   let { name, width = 720, height = 540 } = $props();
 
-  let interval = $state(10);
-  // Not part of the lesson's code: pretends the device is slower by
-  // letting the iframe draw fewer frames per second.
-  let fps = $state(60);
+  let speed = $state(600);
+  let interval = $state(0.15);
   let highlightField = $state(null);
-  let built = $derived(codeFor(interval));
+  let built = $derived(codeFor(speed, interval));
   let code = $derived(built.code);
   // Same seeding trick as the other WASM-exported-value demos: start the
   // code panel with plain text so it's never blank while Shiki loads.
-  let codeHtml = $state(plainCodeHtml(codeFor(10).code));
+  let codeHtml = $state(plainCodeHtml(codeFor(600, 0.15).code));
 
   let iframeEl = $state(null);
   let highlighter;
   let ready = false;
 
-  function codeFor(interval) {
+  function formatFloat(n) {
+    return Number.isInteger(n) ? `${n}.0` : `${n}`;
+  }
+
+  function codeFor(speed, interval) {
     return markedCode([
       `use macroquad::prelude::*;
 use std::collections::HashMap;
 
-// Через сколько кадров после выстрела можно стрелять снова.
-// Чем меньше число, тем чаще выстрелы.
-const SHOOT_INTERVAL: u32 = `,
-      { field: 'interval', value: interval },
+// Пауза между выстрелами в секундах. Чем меньше число, тем чаще выстрелы.
+const SHOOT_INTERVAL: f32 = `,
+      { field: 'interval', value: formatFloat(interval) },
+      `;
+// Скорость пули в пикселях в секунду.
+const SPEED: f32 = `,
+      { field: 'speed', value: formatFloat(speed) },
       `;
 
-// Скорость пули — одна и та же на каждом кадре, поэтому это константа
-// (как в уроке «Константы»).
-const SPEED: f32 = 10.0;
 // Радиус пули.
 const BULLET_RADIUS: f32 = 8.0;
 
@@ -67,17 +69,20 @@ fn inside_rectangle(x: f32, y: f32, rect_x: f32, rect_y: f32, rect_width: f32, r
     x >= rect_x && x <= rect_x + rect_width && y >= rect_y && y <= rect_y + rect_height
 }
 
-#[macroquad::main("Автоматический огонь")]
+#[macroquad::main("Секунды вместо кадров")]
 async fn main() {
     // Пули лежат в HashMap, у каждой свой ID — как в уроке «Стрельба по мишеням».
     let mut bullets: HashMap<u32, Bullet> = HashMap::new();
     // ID, который получит следующая пуля.
     let mut next_id: u32 = 0;
-    // Сколько кадров осталось ждать до следующего выстрела. 0 — можно стрелять.
-    let mut cooldown: u32 = 0;
+    // Сколько секунд осталось ждать до следующего выстрела. 0 или меньше — можно стрелять.
+    let mut cooldown: f32 = 0.0;
 
     loop {
         clear_background(BLACK);
+
+        // Сколько секунд прошло с прошлого кадра.
+        let dt = get_frame_time();
 
         // Турель стоит в центре экрана.
         let center_x = screen_width() / 2.0;
@@ -93,13 +98,13 @@ async fn main() {
         let eye_x = center_x + direction_x * 25.0;
         let eye_y = center_y + direction_y * 25.0;
 
-        // Счётчик идёт к нулю и ниже нуля не опускается.
-        if cooldown > 0 {
-            cooldown -= 1;
-        }
+        // Счётчик уменьшается на столько секунд, сколько прошло с прошлого
+        // кадра. Если он ушёл ниже нуля — ничего страшного, это тоже
+        // значит «можно стрелять».
+        cooldown -= dt;
 
         // Кнопка зажата и ждать больше не нужно — стреляем.
-        if is_mouse_button_down(MouseButton::Left) && cooldown == 0 {
+        if is_mouse_button_down(MouseButton::Left) && cooldown <= 0.0 {
             // Новая пуля из глазика под своим ID.
             bullets.insert(
                 next_id,
@@ -111,10 +116,11 @@ async fn main() {
             cooldown = SHOOT_INTERVAL;
         }
 
-        // Двигаем каждую пулю её собственным направлением.
+        // Двигаем каждую пулю её собственным направлением: за кадр она
+        // проходит скорость, умноженную на время этого кадра.
         for bullet in bullets.values_mut() {
-            bullet.x += bullet.direction_x * SPEED;
-            bullet.y += bullet.direction_y * SPEED;
+            bullet.x += bullet.direction_x * SPEED * dt;
+            bullet.y += bullet.direction_y * SPEED * dt;
         }
 
         // Удалять во время чтения нельзя, поэтому ID пуль, которые
@@ -154,57 +160,29 @@ async fn main() {
     codeHtml = highlightRust(highlighter, code, built.marks);
   }
 
-  function applyInterval() {
+  function applyValues() {
     const exports = iframeEl?.contentWindow?.wasm_exports;
-    if (!exports?.set_interval) return;
+    if (!exports?.set_speed || !exports?.set_interval) return;
+    exports.set_speed(speed);
     exports.set_interval(interval);
     ready = true;
   }
 
-  // Every frame, mq_js_bundle.js asks for the next one through the
-  // iframe's own window.requestAnimationFrame. Wrapping it (once) so it
-  // waits until enough time has passed makes the whole demo run at a
-  // lower frame rate, without touching the Rust code at all.
-  function applyFpsLimit() {
-    const win = iframeEl?.contentWindow;
-    if (!win?.requestAnimationFrame) return;
-
-    win.__fpsLimit = fps;
-
-    if (win.__fpsLimitInstalled) return;
-    win.__fpsLimitInstalled = true;
-
-    const nativeRaf = win.requestAnimationFrame.bind(win);
-    win.__nextFrame = 0;
-    win.requestAnimationFrame = (callback) =>
-      nativeRaf(function wait(time) {
-        if (time < win.__nextFrame) {
-          nativeRaf(wait);
-          return;
-        }
-        const frameLength = 1000 / win.__fpsLimit;
-        // After a long pause (a sleeping tab, say) start counting afresh
-        // instead of firing a burst of catch-up frames.
-        win.__nextFrame = time - win.__nextFrame > frameLength ? time + frameLength : win.__nextFrame + frameLength;
-        callback(time);
-      });
-  }
-
   // <input min max> only guards the spinner arrows, not typed values —
-  // clamp for real, and keep it a whole number of frames.
-  function clampInterval(value) {
-    return Math.min(60, Math.max(1, Math.round(value)));
+  // clamp for real. Rounding keeps spinner steps like 0.15 + 0.05 from
+  // turning into 0.20000000000000001 in the code panel.
+  function clampSpeed(value) {
+    return Math.min(1000, Math.max(100, Math.round(value)));
   }
 
-  function clampFps(value) {
-    return Math.min(60, Math.max(5, Math.round(value)));
+  function clampInterval(value) {
+    return Math.min(1, Math.max(0.05, Math.round(value * 100) / 100));
   }
 
   $effect(() => {
+    speed = clampSpeed(speed);
     interval = clampInterval(interval);
-    fps = clampFps(fps);
-    applyInterval();
-    applyFpsLimit();
+    applyValues();
     renderCode();
   });
 
@@ -222,8 +200,7 @@ async fn main() {
         clearInterval(readyPoll);
         return;
       }
-      applyInterval();
-      applyFpsLimit();
+      applyValues();
     }, 100);
 
     return () => {
@@ -233,34 +210,40 @@ async fn main() {
   });
 </script>
 
-<div class="auto-fire-demo">
+<div class="frame-time-demo">
   <WasmCanvas {name} {width} {height} bind:iframeEl />
 
   <p class="demo-instructions">
-    Зажми левую кнопку мыши на турели и води мышью — пули летят, пока
-    кнопка зажата. Меняй число кадров между выстрелами. Поле fps не
-    относится к коду: оно притворяется слабым устройством и рисует
-    меньше кадров в секунду.
+    Зажми левую кнопку мыши на турели и води мышью. Меняй скорость
+    пули и паузу между выстрелами:
   </p>
 
   <div class="controls" style={`max-width: ${width}px;`}>
     <NumberField
+      label="speed"
+      bind:value={speed}
+      min="100"
+      max="1000"
+      step="50"
+      onfocus={() => (highlightField = 'speed')}
+      onblur={() => (highlightField = null)}
+    />
+    <NumberField
       label="interval"
       bind:value={interval}
-      min="1"
-      max="60"
-      step="1"
+      min="0.05"
+      max="1"
+      step="0.05"
       onfocus={() => (highlightField = 'interval')}
       onblur={() => (highlightField = null)}
     />
-    <NumberField label="fps" bind:value={fps} min="5" max="60" step="5" />
   </div>
 
   <CodePanel html={codeHtml} {code} {highlightField} />
 </div>
 
 <style>
-  .auto-fire-demo {
+  .frame-time-demo {
     margin-block: 1rem;
   }
 
