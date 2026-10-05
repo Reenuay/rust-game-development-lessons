@@ -85,10 +85,12 @@ async fn main() {
         let mut look_y = center_y;
         // Если в best_id лежит Some, называем то, что внутри, id.
         if let Some(id) = best_id {
-            // Достаём координаты выбранной цели по её ID.
-            let (target_x, target_y) = targets[&id];
-            look_x = target_x;
-            look_y = target_y;
+            // get ищет мишень по ID и возвращает Option: Some с
+            // координатами, если такая мишень есть, и None, если нет.
+            if let Some(&(target_x, target_y)) = targets.get(&id) {
+                look_x = target_x;
+                look_y = target_y;
+            }
         }
 
         // Направление от турели к этой точке.
