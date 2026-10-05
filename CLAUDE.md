@@ -102,6 +102,20 @@ what language a tool result, file, or code comment happens to be in.
   is correct here because the static block is the *only* representation of
   the code — see `mouse-click.mdx`, `movement.mdx`, `else.mdx`.
 
+## Basic vs. extra lessons
+
+- `lessons/basic/` uses a tricky topic (a formula, a piece of math) purely
+  as a tool and doesn't explain *why* it works — no geometric or
+  algebraic justification there.
+- `lessons/extra/` exists to deepen understanding of exactly those topics:
+  it explains the meaning behind the tool a basic lesson just uses (e.g.
+  `pythagoras.mdx` explains where the formula in `distance.mdx` comes
+  from).
+- So don't put the full explanation into a basic lesson — give a link to
+  the extra one instead. A basic lesson must stay passable without its
+  extra lesson. An extra lesson may lean on what the reader saw in the
+  basic one, but still with a real link, per the linking rule above.
+
 ## The Expressive Code asset trap
 
 Live code panels (`CodePanel.svelte`) reuse Starlight's real Expressive
