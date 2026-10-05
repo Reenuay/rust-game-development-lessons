@@ -72,8 +72,7 @@ async fn main() {
         let eye_x = center_x + direction_x * 25.0;
         let eye_y = center_y + direction_y * 25.0;
 
-        // Счётчик идёт к нулю. u32 не бывает меньше нуля, поэтому ниже
-        // нуля не опускаем.
+        // Счётчик идёт к нулю и ниже нуля не опускается.
         if cooldown > 0 {
             cooldown -= 1;
         }
