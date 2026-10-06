@@ -1,7 +1,7 @@
 ---
 // Starlight's own page title, with a small grey label above it: the name of
 // the sidebar section and the lesson's number inside that section, e.g.
-// "Уроки 14". The number is the lesson's position in the sidebar list (not
+// "Уроки · 14". The number is the lesson's position in the sidebar list (not
 // its `sidebar.order`), so gaps in `order` and the order of the files
 // don't matter, and each section counts on its own. Nothing to write in
 // the lessons themselves.
@@ -19,7 +19,7 @@ for (const section of sidebar) {
   if (section.type !== 'group') continue;
   const position = linksOf(section).findIndex((link) => link.isCurrent);
   if (position !== -1) {
-    label = `${section.label} ${position + 1}`;
+    label = `${section.label} · ${position + 1}`;
     break;
   }
 }
