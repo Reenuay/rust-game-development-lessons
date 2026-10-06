@@ -94,9 +94,10 @@ impl Point {
     }
 }
 
-// Один враг: где он сейчас.
+// Один враг: где он сейчас и куда идёт.
 struct Enemy {
     position: Point,
+    direction: Point,
 }
 
 // Одна пуля: где она сейчас и куда летит.
@@ -112,9 +113,11 @@ fn random_enemy(center: Point) -> Enemy {
     // Случайный угол от 0 до полного круга.
     let angle = rand::gen_range(0.0, 2.0 * PI);
     let spawn_distance = screen_height() / 2.0 - ENEMY_RADIUS;
-    // Направление по углу — как в уроке «Вращение».
-    let direction = Point { x: angle.cos(), y: angle.sin() };
-    Enemy { position: center.moved(direction, spawn_distance) }
+    // Направление от турели по углу — как в уроке «Вращение».
+    let outward = Point { x: angle.cos(), y: angle.sin() };
+    let position = center.moved(outward, spawn_distance);
+    // Враг идёт к турели по прямой, поэтому направление считаем один раз.
+    Enemy { position, direction: position.direction_to(center) }
 }
 
 // Двигает каждую пулю её собственным направлением.
@@ -124,12 +127,10 @@ fn move_bullets(bullets: &mut HashMap<u32, Bullet>, dt: f32) {
     }
 }
 
-// Двигает каждого врага в сторону цели.
-fn move_enemies(enemies: &mut HashMap<u32, Enemy>, target: Point, dt: f32) {
+// Двигает каждого врага его собственным направлением.
+fn move_enemies(enemies: &mut HashMap<u32, Enemy>, dt: f32) {
     for enemy in enemies.values_mut() {
-        // Направление от врага к цели, считаем заново на каждом кадре.
-        let direction = enemy.position.direction_to(target);
-        enemy.position = enemy.position.moved(direction, ENEMY_SPEED * dt);
+        enemy.position = enemy.position.moved(enemy.direction, ENEMY_SPEED * dt);
     }
 }
 
@@ -242,7 +243,7 @@ async fn main() {
 
         // Двигаем пуль и врагов.
         move_bullets(&mut bullets, dt);
-        move_enemies(&mut enemies, center, dt);
+        move_enemies(&mut enemies, dt);
 
         // Удалять во время чтения нельзя, поэтому ID всего лишнего сначала
         // собираем в списки: пули на удаление, враги, в которых попали, и

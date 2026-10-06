@@ -36,10 +36,12 @@ const SCORE_Y: f32 = 130.0;
 const SCORE_SIZE: f32 = 80.0;
 const SCORE_NUMBER_OFFSET: f32 = 260.0;
 
-// Один враг: где он сейчас.
+// Один враг: положение и зафиксированное направление к турели.
 struct Enemy {
     x: f32,
     y: f32,
+    direction_x: f32,
+    direction_y: f32,
 }
 
 // Одна пуля: положение и зафиксированное направление полёта.
@@ -104,7 +106,10 @@ async fn main() {
         // Точка вокруг турели — как в уроке «Вращение».
         let x = start_x + angle.cos() * spawn_distance;
         let y = start_y + angle.sin() * spawn_distance;
-        enemies.insert(id, Enemy { x, y });
+        // Враг идёт к турели по прямой, поэтому направление считаем один
+        // раз, прямо сейчас.
+        let (direction_x, direction_y) = direction(x, y, start_x, start_y);
+        enemies.insert(id, Enemy { x, y, direction_x, direction_y });
     }
 
     // Пули — тоже HashMap с ID, как в уроке «Стрельба по мишеням».
@@ -161,14 +166,11 @@ async fn main() {
             bullet.y += bullet.direction_y * BULLET_SPEED * dt;
         }
 
-        // Двигаем каждого врага к турели.
+        // Двигаем каждого врага его собственным направлением.
         for enemy in enemies.values_mut() {
-            // Направление от врага к турели. Турель стоит на месте, но
-            // считать его заново на каждом кадре проще, чем хранить.
-            let (to_turret_x, to_turret_y) = direction(enemy.x, enemy.y, center_x, center_y);
             // Шаг за кадр — скорость в пикселях в секунду, умноженная на dt.
-            enemy.x += to_turret_x * ENEMY_SPEED * dt;
-            enemy.y += to_turret_y * ENEMY_SPEED * dt;
+            enemy.x += enemy.direction_x * ENEMY_SPEED * dt;
+            enemy.y += enemy.direction_y * ENEMY_SPEED * dt;
         }
 
         // Удалять во время чтения нельзя, поэтому ID всего лишнего сначала

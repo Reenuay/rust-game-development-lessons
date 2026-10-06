@@ -75,10 +75,12 @@ const SCORE_Y: f32 = 130.0;
 const SCORE_SIZE: f32 = 80.0;
 const SCORE_NUMBER_OFFSET: f32 = 260.0;
 
-// Один враг: где он сейчас.
+// Один враг: положение и зафиксированное направление к турели.
 struct Enemy {
     x: f32,
     y: f32,
+    direction_x: f32,
+    direction_y: f32,
 }
 
 // Одна пуля: положение и зафиксированное направление полёта.
@@ -125,10 +127,11 @@ fn random_enemy(center_x: f32, center_y: f32) -> Enemy {
     let angle = rand::gen_range(0.0, 2.0 * PI);
     let spawn_distance = screen_height() / 2.0 - ENEMY_RADIUS;
     // Точка вокруг турели — как в уроке «Вращение».
-    Enemy {
-        x: center_x + angle.cos() * spawn_distance,
-        y: center_y + angle.sin() * spawn_distance,
-    }
+    let x = center_x + angle.cos() * spawn_distance;
+    let y = center_y + angle.sin() * spawn_distance;
+    // Враг идёт к турели по прямой, поэтому направление считаем один раз.
+    let (direction_x, direction_y) = direction(x, y, center_x, center_y);
+    Enemy { x, y, direction_x, direction_y }
 }
 
 #[macroquad::main("Враги появляются сами")]
@@ -217,14 +220,11 @@ async fn main() {
             bullet.y += bullet.direction_y * BULLET_SPEED * dt;
         }
 
-        // Двигаем каждого врага к турели.
+        // Двигаем каждого врага его собственным направлением.
         for enemy in enemies.values_mut() {
-            // Направление от врага к турели. Турель стоит на месте, но
-            // считать его заново на каждом кадре проще, чем хранить.
-            let (to_turret_x, to_turret_y) = direction(enemy.x, enemy.y, center_x, center_y);
             // Шаг за кадр — скорость в пикселях в секунду, умноженная на dt.
-            enemy.x += to_turret_x * ENEMY_SPEED * dt;
-            enemy.y += to_turret_y * ENEMY_SPEED * dt;
+            enemy.x += enemy.direction_x * ENEMY_SPEED * dt;
+            enemy.y += enemy.direction_y * ENEMY_SPEED * dt;
         }
 
         // Удалять во время чтения нельзя, поэтому ID всего лишнего сначала

@@ -30,32 +30,34 @@ for id in 0..ENEMY_COUNT {
     // Точка вокруг турели.
     let x = start_x + angle.cos() * spawn_distance;
     let y = start_y + angle.sin() * spawn_distance;
+    // Враг идёт к турели по прямой, поэтому направление считаем один раз.
+    let (direction_x, direction_y) = direction(x, y, start_x, start_y);
     // Кладём врага в HashMap под его ID.
-    enemies.insert(id, Enemy { x, y });
+    enemies.insert(id, Enemy { x, y, direction_x, direction_y });
 }
 ```
 
 ## Враг идёт к турели
 
-Каждый кадр сдвигаем каждого врага в сторону турели:
+Направление мы посчитали один раз, когда расставляли врагов. Функция
+`direction` из урока [«Свои функции»](../functions/) выдаёт направление
+от врага к турели. Турель стоит на месте, поэтому враг всё время идёт по
+одной прямой, и пересчитывать направление не нужно. Его можно хранить в
+самом враге, как мы хранили его в пуле.
+
+Каждый кадр сдвигаем каждого врага его собственным направлением:
 
 ```rust
 for enemy in enemies.values_mut() {
-    // Направление от врага к турели.
-    let (to_turret_x, to_turret_y) = direction(enemy.x, enemy.y, center_x, center_y);
     // Шаг за кадр — скорость в пикселях в секунду, умноженная на dt.
-    enemy.x += to_turret_x * ENEMY_SPEED * dt;
-    enemy.y += to_turret_y * ENEMY_SPEED * dt;
+    enemy.x += enemy.direction_x * ENEMY_SPEED * dt;
+    enemy.y += enemy.direction_y * ENEMY_SPEED * dt;
 }
 ```
 
 Так же двигалась пуля в уроке [«Секунды вместо кадров»](../frame-time/):
 направление, умноженное на скорость и на `dt`. Враг ничем не
-отличается. Только пуле мы один раз запоминали направление, а врагу
-считаем его заново на каждом кадре функцией `direction` из урока
-[«Свои функции»](../functions/). Турель стоит на месте, поэтому
-направление каждый раз получается одно и то же. Но так проще, чем
-хранить его у каждого врага.
+отличается.
 
 ## Пули и попадания
 
@@ -140,10 +142,12 @@ const SCORE_Y: f32 = 130.0;
 const SCORE_SIZE: f32 = 80.0;
 const SCORE_NUMBER_OFFSET: f32 = 260.0;
 
-// Один враг: где он сейчас.
+// Один враг: положение и зафиксированное направление к турели.
 struct Enemy {
     x: f32,
     y: f32,
+    direction_x: f32,
+    direction_y: f32,
 }
 
 // Одна пуля: положение и зафиксированное направление полёта.
@@ -208,7 +212,10 @@ async fn main() {
         // Точка вокруг турели — как в уроке «Вращение».
         let x = start_x + angle.cos() * spawn_distance;
         let y = start_y + angle.sin() * spawn_distance;
-        enemies.insert(id, Enemy { x, y });
+        // Враг идёт к турели по прямой, поэтому направление считаем один
+        // раз, прямо сейчас.
+        let (direction_x, direction_y) = direction(x, y, start_x, start_y);
+        enemies.insert(id, Enemy { x, y, direction_x, direction_y });
     }
 
     // Пули — тоже HashMap с ID, как в уроке «Стрельба по мишеням».
@@ -265,14 +272,11 @@ async fn main() {
             bullet.y += bullet.direction_y * BULLET_SPEED * dt;
         }
 
-        // Двигаем каждого врага к турели.
+        // Двигаем каждого врага его собственным направлением.
         for enemy in enemies.values_mut() {
-            // Направление от врага к турели. Турель стоит на месте, но
-            // считать его заново на каждом кадре проще, чем хранить.
-            let (to_turret_x, to_turret_y) = direction(enemy.x, enemy.y, center_x, center_y);
             // Шаг за кадр — скорость в пикселях в секунду, умноженная на dt.
-            enemy.x += to_turret_x * ENEMY_SPEED * dt;
-            enemy.y += to_turret_y * ENEMY_SPEED * dt;
+            enemy.x += enemy.direction_x * ENEMY_SPEED * dt;
+            enemy.y += enemy.direction_y * ENEMY_SPEED * dt;
         }
 
         // Удалять во время чтения нельзя, поэтому ID всего лишнего сначала
@@ -372,8 +376,9 @@ cargo run
 - `enemies` — `HashMap<u32, Enemy>`: ID врага и его положение.
   Расставляются при старте под случайными углами и на случайном
   расстоянии от турели.
-- Каждый кадр враг сдвигается на `ENEMY_SPEED * dt` в сторону турели.
-  Направление считает `direction`.
+- Направление к турели `direction` считает один раз, при расстановке, и
+  оно хранится в самом враге. Каждый кадр враг сдвигается на
+  `ENEMY_SPEED * dt` в эту сторону.
 - Пули летят так же: направление запоминается при выстреле, шаг за кадр
   равен `BULLET_SPEED * dt`. Выстрел возможен, когда кнопка зажата, а
   `cooldown` дошёл до нуля.
