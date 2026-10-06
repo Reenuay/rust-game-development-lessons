@@ -17,6 +17,7 @@ export default defineConfig({
       ],
       components: {
         ThemeSelect: './src/components/ThemeSelect.astro',
+        PageTitle: './src/components/PageTitle.astro',
       },
       customCss: ['./src/styles/custom.css', './src/styles/pulse.css'],
       sidebar: [

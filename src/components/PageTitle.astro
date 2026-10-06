@@ -1,0 +1,39 @@
+---
+// Starlight's own page title, with a small grey label above it: the name of
+// the sidebar section and the lesson's number inside that section, e.g.
+// "Уроки 14". The number is the lesson's position in the sidebar list (not
+// its `sidebar.order`), so gaps in `order` and the order of the files
+// don't matter, and each section counts on its own. Nothing to write in
+// the lessons themselves.
+import Default from '@astrojs/starlight/components/PageTitle.astro';
+
+const { sidebar } = Astro.locals.starlightRoute;
+
+// All links of a sidebar entry, in the order the sidebar shows them.
+function linksOf(entry) {
+  return entry.type === 'group' ? entry.entries.flatMap(linksOf) : [entry];
+}
+
+let label;
+for (const section of sidebar) {
+  if (section.type !== 'group') continue;
+  const position = linksOf(section).findIndex((link) => link.isCurrent);
+  if (position !== -1) {
+    label = `${section.label} ${position + 1}`;
+    break;
+  }
+}
+---
+
+{label && <p class="lesson-number">{label}</p>}
+<Default {...Astro.props}><slot /></Default>
+
+<style>
+  .lesson-number {
+    /* Pulls the real title (it has its own top margin) up under the label. */
+    margin: 1rem 0 -0.5rem;
+    font-size: var(--sl-text-sm);
+    line-height: 1;
+    color: var(--sl-color-gray-3);
+  }
+</style>
