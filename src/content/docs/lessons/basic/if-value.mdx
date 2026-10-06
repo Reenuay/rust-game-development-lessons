@@ -12,7 +12,7 @@ import IfValueDemo from '../../../../components/IfValueDemo.svelte';
 каждой ветке отдельно:
 
 ```rust
-if distance < RADIUS {
+if player_distance < RADIUS {
     // Игрок внутри радиуса — красная турель.
     draw_circle(center_x, center_y, 40.0, RED);
 } else {
@@ -31,7 +31,7 @@ if distance < RADIUS {
 
 ```rust
 // Ветки выбирают цвет. Что выбрала сработавшая, то и попадёт в color.
-let color = if distance < RADIUS { RED } else { BLUE };
+let color = if player_distance < RADIUS { RED } else { BLUE };
 
 // Рисуем один раз, цветом из переменной.
 draw_circle(center_x, center_y, 40.0, color);
@@ -64,9 +64,12 @@ draw_circle(center_x, center_y, 40.0, color);
 
 ## Что здесь происходит
 
-- `let color = if distance < RADIUS { RED } else { BLUE };` — `if` с
+- `let color = if player_distance < RADIUS { RED } else { BLUE };` — `if` с
   `else` выдаёт значение. Сработала первая ветка, и в `color` попадает
   `RED`, сработала вторая, и `BLUE`.
+- `distance` — своя функция расстояния между двумя точками, как в уроке
+  [«Расстояние»](../distance/), только вынесенная из `main`, как в уроке
+  [«Свои функции»](../functions/). Результат записан в `player_distance`.
 - `RED` и `BLUE` стоят в ветках без точки с запятой: так ветка отдаёт
   значение наружу.
 - `color` используется дважды: для контура радиуса и для самой
