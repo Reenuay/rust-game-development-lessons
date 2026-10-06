@@ -12,13 +12,17 @@ pub extern "C" fn set_bar_width(bar_width: f32) {
 const MAX_HEALTH: f32 = 100.0;
 // Сколько здоровья отнимает один клик.
 const DAMAGE: f32 = 10.0;
+// Выше какой доли здоровья полоска зелёная.
+const GOOD_HEALTH: f32 = 0.6;
+// Выше какой доли — жёлтая, а ниже — красная.
+const LOW_HEALTH: f32 = 0.3;
 
 // Левый верхний угол полоски и её высота.
 const BAR_X: f32 = 20.0;
 const BAR_Y: f32 = 20.0;
 const BAR_HEIGHT: f32 = 40.0;
 
-#[macroquad::main("Полоска здоровья")]
+#[macroquad::main("else if")]
 async fn main() {
     set_bar_width(400.0);
 
@@ -44,10 +48,20 @@ async fn main() {
         // Доля здоровья от 0 до 1.
         let fraction = health / MAX_HEALTH;
 
+        // Цвет выбираем по очереди: много здоровья — зелёный, иначе
+        // средне — жёлтый, иначе мало — красный.
+        let color = if fraction > GOOD_HEALTH {
+            GREEN
+        } else if fraction > LOW_HEALTH {
+            YELLOW
+        } else {
+            RED
+        };
+
         // Серая подложка: вся полоска целиком.
         draw_rectangle(BAR_X, BAR_Y, bar_width, BAR_HEIGHT, GRAY);
-        // Зелёная часть поверх неё: ширина — доля от всей полоски.
-        draw_rectangle(BAR_X, BAR_Y, bar_width * fraction, BAR_HEIGHT, GREEN);
+        // Цветная часть поверх неё: ширина — доля от всей полоски.
+        draw_rectangle(BAR_X, BAR_Y, bar_width * fraction, BAR_HEIGHT, color);
 
         next_frame().await;
     }

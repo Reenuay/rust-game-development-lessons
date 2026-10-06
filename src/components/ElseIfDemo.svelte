@@ -37,6 +37,10 @@
 const MAX_HEALTH: f32 = 100.0;
 // Сколько здоровья отнимает один клик.
 const DAMAGE: f32 = 10.0;
+// Выше какой доли здоровья полоска зелёная.
+const GOOD_HEALTH: f32 = 0.6;
+// Выше какой доли — жёлтая, а ниже — красная.
+const LOW_HEALTH: f32 = 0.3;
 
 // Левый верхний угол полоски, её высота и длина.
 const BAR_X: f32 = 20.0;
@@ -46,7 +50,7 @@ const BAR_WIDTH: f32 = `,
       { field: 'bar_width', value: formatFloat(barWidth) },
       `;
 
-#[macroquad::main("Полоска здоровья")]
+#[macroquad::main("else if")]
 async fn main() {
     // Текущее здоровье — сначала полное.
     let mut health = MAX_HEALTH;
@@ -68,10 +72,20 @@ async fn main() {
         // Доля здоровья от 0 до 1.
         let fraction = health / MAX_HEALTH;
 
+        // Цвет выбираем по очереди: много здоровья — зелёный, иначе
+        // средне — жёлтый, иначе мало — красный.
+        let color = if fraction > GOOD_HEALTH {
+            GREEN
+        } else if fraction > LOW_HEALTH {
+            YELLOW
+        } else {
+            RED
+        };
+
         // Серая подложка: вся полоска целиком.
         draw_rectangle(BAR_X, BAR_Y, BAR_WIDTH, BAR_HEIGHT, GRAY);
-        // Зелёная часть поверх неё: ширина — доля от всей полоски.
-        draw_rectangle(BAR_X, BAR_Y, BAR_WIDTH * fraction, BAR_HEIGHT, GREEN);
+        // Цветная часть поверх неё: ширина — доля от всей полоски.
+        draw_rectangle(BAR_X, BAR_Y, BAR_WIDTH * fraction, BAR_HEIGHT, color);
 
         next_frame().await;
     }
@@ -130,7 +144,7 @@ async fn main() {
   });
 </script>
 
-<div class="health-bar-demo">
+<div class="else-if-demo">
   <WasmCanvas {name} {width} {height} bind:iframeEl />
 
   <p class="demo-instructions">
@@ -155,7 +169,7 @@ async fn main() {
 </div>
 
 <style>
-  .health-bar-demo {
+  .else-if-demo {
     margin-block: 1rem;
   }
 
