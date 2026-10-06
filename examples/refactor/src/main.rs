@@ -77,11 +77,19 @@ impl Point {
         }
     }
 
-    // Новая точка: эта, сдвинутая по направлению на distance пикселей.
-    fn moved(self, direction: Point, distance: f32) -> Point {
+    // Сумма двух точек: x складываем с x, y с y.
+    fn plus(self, other: Point) -> Point {
         Point {
-            x: self.x + direction.x * distance,
-            y: self.y + direction.y * distance,
+            x: self.x + other.x,
+            y: self.y + other.y,
+        }
+    }
+
+    // Точка, умноженная на обычное число: и x, и y умножаются на него.
+    fn times(self, factor: f32) -> Point {
+        Point {
+            x: self.x * factor,
+            y: self.y * factor,
         }
     }
 
@@ -115,7 +123,7 @@ fn random_enemy(center: Point) -> Enemy {
     let spawn_distance = screen_height() / 2.0 - ENEMY_RADIUS;
     // Направление от турели по углу — как в уроке «Вращение».
     let outward = Point { x: angle.cos(), y: angle.sin() };
-    let position = center.moved(outward, spawn_distance);
+    let position = center.plus(outward.times(spawn_distance));
     // Враг идёт к турели по прямой, поэтому направление считаем один раз.
     Enemy { position, direction: position.direction_to(center) }
 }
@@ -123,14 +131,18 @@ fn random_enemy(center: Point) -> Enemy {
 // Двигает каждую пулю её собственным направлением.
 fn move_bullets(bullets: &mut HashMap<u32, Bullet>, dt: f32) {
     for bullet in bullets.values_mut() {
-        bullet.position = bullet.position.moved(bullet.direction, BULLET_SPEED * dt);
+        // Шаг за кадр — направление, умноженное на скорость и на dt.
+        let step = bullet.direction.times(BULLET_SPEED * dt);
+        bullet.position = bullet.position.plus(step);
     }
 }
 
 // Двигает каждого врага его собственным направлением.
 fn move_enemies(enemies: &mut HashMap<u32, Enemy>, dt: f32) {
     for enemy in enemies.values_mut() {
-        enemy.position = enemy.position.moved(enemy.direction, ENEMY_SPEED * dt);
+        // Шаг за кадр — направление, умноженное на скорость и на dt.
+        let step = enemy.direction.times(ENEMY_SPEED * dt);
+        enemy.position = enemy.position.plus(step);
     }
 }
 
@@ -208,8 +220,8 @@ async fn main() {
         // Куда смотрит турель — направление от центра к мыши.
         let aim = center.direction_to(mouse);
 
-        // Глазик — центр турели, сдвинутый в сторону мыши на 25 пикселей.
-        let eye = center.moved(aim, 25.0);
+        // Глазик — центр турели плюс направление, растянутое на 25 пикселей.
+        let eye = center.plus(aim.times(25.0));
 
         // Пауза между врагами зависит от очков и не короче MIN_SPAWN_INTERVAL.
         let spawn_interval = (START_SPAWN_INTERVAL - score as f32 * SPEEDUP).max(MIN_SPAWN_INTERVAL);

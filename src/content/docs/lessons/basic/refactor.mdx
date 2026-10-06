@@ -76,27 +76,34 @@ struct Point {
 
 ```rust
 impl Point {
-    // Расстояние от этой точки до другой.
-    fn distance_to(self, other: Point) -> f32 {
-        let dx = other.x - self.x;
-        let dy = other.y - self.y;
-        (dx * dx + dy * dy).sqrt()
+    // Сумма двух точек: x складываем с x, y с y.
+    fn plus(self, other: Point) -> Point {
+        Point {
+            x: self.x + other.x,
+            y: self.y + other.y,
+        }
     }
 
-    // Новая точка: эта, сдвинутая по направлению на distance пикселей.
-    fn moved(self, direction: Point, distance: f32) -> Point {
+    // Точка, умноженная на обычное число: и x, и y умножаются на него.
+    fn times(self, factor: f32) -> Point {
         Point {
-            x: self.x + direction.x * distance,
-            y: self.y + direction.y * distance,
+            x: self.x * factor,
+            y: self.y * factor,
         }
     }
 }
 ```
 
-Кроме `distance_to` здесь ещё `direction_to` (бывшая `direction`) и
-`inside` (бывшая `inside_rectangle`), они есть в полном коде ниже.
-Новенький тут только `moved`: он берёт точку и сдвигает её в нужную
-сторону. Раньше мы каждый раз писали это отдельно для `x` и для `y`, а
+Кроме них в полном коде ниже есть `distance_to` из урока «Методы»,
+`direction_to` (бывшая `direction`) и `inside` (бывшая
+`inside_rectangle`). Новых тут два: `plus` и `times`.
+
+`plus` складывает две точки. Если одна точка — где мы стоим, а другая —
+на сколько надо сдвинуться, то сумма и есть то место, куда мы придём.
+
+`times` умножает точку на обычное число. Направление, как мы помним,
+всегда длиной 1. Умножим его на 25, и получится сдвиг ровно на 25
+пикселей в ту же сторону. Раньше мы умножали `x` и `y` по отдельности, а
 теперь это сделано один раз.
 
 Посмотри, как теперь читаются вызовы:
@@ -104,16 +111,16 @@ impl Point {
 ```rust
 // Куда смотрит турель: направление от центра к мыши.
 let aim = center.direction_to(mouse);
-// Глазик: центр, сдвинутый в сторону мыши на 25 пикселей.
-let eye = center.moved(aim, 25.0);
+// Глазик: центр плюс направление, растянутое на 25 пикселей.
+let eye = center.plus(aim.times(25.0));
 // Пуля вылетела за край экрана?
 if !bullet.position.inside(screen) {
     bullets_to_remove.push(bullet_id);
 }
 ```
 
-Почти как обычная фраза: «из центра направление к мыши», «центр,
-сдвинутый на 25 пикселей».
+Почти как обычная фраза: «из центра направление к мыши», «центр плюс
+направление, умноженное на 25».
 
 ## Режем `loop` на функции
 
@@ -125,8 +132,10 @@ if !bullet.position.inside(screen) {
 // Двигает каждого врага его собственным направлением.
 fn move_enemies(enemies: &mut HashMap<u32, Enemy>, dt: f32) {
     for enemy in enemies.values_mut() {
+        // Шаг за кадр — направление, умноженное на скорость и на dt.
+        let step = enemy.direction.times(ENEMY_SPEED * dt);
         // Сдвигаем врага вперёд на один шаг.
-        enemy.position = enemy.position.moved(enemy.direction, ENEMY_SPEED * dt);
+        enemy.position = enemy.position.plus(step);
     }
 }
 ```
@@ -230,11 +239,19 @@ impl Point {
         }
     }
 
-    // Новая точка: эта, сдвинутая по направлению на distance пикселей.
-    fn moved(self, direction: Point, distance: f32) -> Point {
+    // Сумма двух точек: x складываем с x, y с y.
+    fn plus(self, other: Point) -> Point {
         Point {
-            x: self.x + direction.x * distance,
-            y: self.y + direction.y * distance,
+            x: self.x + other.x,
+            y: self.y + other.y,
+        }
+    }
+
+    // Точка, умноженная на обычное число: и x, и y умножаются на него.
+    fn times(self, factor: f32) -> Point {
+        Point {
+            x: self.x * factor,
+            y: self.y * factor,
         }
     }
 
@@ -268,7 +285,7 @@ fn random_enemy(center: Point) -> Enemy {
     let spawn_distance = screen_height() / 2.0 - ENEMY_RADIUS;
     // Направление от турели по углу — как в уроке «Вращение».
     let outward = Point { x: angle.cos(), y: angle.sin() };
-    let position = center.moved(outward, spawn_distance);
+    let position = center.plus(outward.times(spawn_distance));
     // Враг идёт к турели по прямой, поэтому направление считаем один раз.
     Enemy { position, direction: position.direction_to(center) }
 }
@@ -276,14 +293,18 @@ fn random_enemy(center: Point) -> Enemy {
 // Двигает каждую пулю её собственным направлением.
 fn move_bullets(bullets: &mut HashMap<u32, Bullet>, dt: f32) {
     for bullet in bullets.values_mut() {
-        bullet.position = bullet.position.moved(bullet.direction, BULLET_SPEED * dt);
+        // Шаг за кадр — направление, умноженное на скорость и на dt.
+        let step = bullet.direction.times(BULLET_SPEED * dt);
+        bullet.position = bullet.position.plus(step);
     }
 }
 
 // Двигает каждого врага его собственным направлением.
 fn move_enemies(enemies: &mut HashMap<u32, Enemy>, dt: f32) {
     for enemy in enemies.values_mut() {
-        enemy.position = enemy.position.moved(enemy.direction, ENEMY_SPEED * dt);
+        // Шаг за кадр — направление, умноженное на скорость и на dt.
+        let step = enemy.direction.times(ENEMY_SPEED * dt);
+        enemy.position = enemy.position.plus(step);
     }
 }
 
@@ -361,8 +382,8 @@ async fn main() {
         // Куда смотрит турель — направление от центра к мыши.
         let aim = center.direction_to(mouse);
 
-        // Глазик — центр турели, сдвинутый в сторону мыши на 25 пикселей.
-        let eye = center.moved(aim, 25.0);
+        // Глазик — центр турели плюс направление, растянутое на 25 пикселей.
+        let eye = center.plus(aim.times(25.0));
 
         // Пауза между врагами зависит от очков и не короче MIN_SPAWN_INTERVAL.
         let spawn_interval = (START_SPAWN_INTERVAL - score as f32 * SPEEDUP).max(MIN_SPAWN_INTERVAL);
@@ -475,12 +496,13 @@ cargo run
 
 - `#[derive(Clone, Copy)]` над `Point` разрешает копировать точку, как
   число: отдал в функцию, а своя копия осталась.
-- `Enemy` и `Bullet` хранят `position` (и пуля ещё `direction`) вместо
-  отдельных `x` и `y`.
-- `impl Point` — методы точки: `distance_to`, `direction_to`, `moved` и
-  `inside`. Вызов читается слева направо: `center.direction_to(mouse)`.
-- `moved` двигает точку по направлению на нужное число пикселей, и
-  больше не надо считать `x` и `y` по отдельности.
+- `Enemy` и `Bullet` хранят `position` и `direction` вместо отдельных
+  `x`, `y`, `direction_x` и `direction_y`.
+- `impl Point` — методы точки: `distance_to`, `direction_to`, `plus`,
+  `times` и `inside`. Вызов читается слева направо:
+  `center.direction_to(mouse)`.
+- `plus` складывает две точки, а `times` умножает точку на число. Вместе
+  они двигают точку: `position.plus(direction.times(distance))`.
 - `move_bullets`, `move_enemies` получают список как `&mut` и меняют
   его. `draw_enemies`, `draw_bullets` только читают, им хватает `&`.
 - `draw_turret`, `draw_health_bar` и `draw_score` рисуют каждый свою
