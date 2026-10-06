@@ -655,6 +655,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "spawn"
+version = "0.1.0"
+dependencies = [
+ "macroquad",
+]
+
+[[package]]
 name = "srand"
 version = "0.1.0"
 dependencies = [
