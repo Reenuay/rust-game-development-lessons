@@ -30,9 +30,11 @@ const BAR_Y: f32 = 20.0;
 const BAR_WIDTH: f32 = 300.0;
 const BAR_HEIGHT: f32 = 30.0;
 
-// Счёт под полоской: линия, на которой стоят буквы, и размер букв.
-const SCORE_Y: f32 = 90.0;
-const SCORE_SIZE: f32 = 40.0;
+// Счёт под полоской: линия, на которой стоят буквы, размер букв и то,
+// насколько число сдвинуто вправо от подписи.
+const SCORE_Y: f32 = 130.0;
+const SCORE_SIZE: f32 = 80.0;
+const SCORE_NUMBER_OFFSET: f32 = 260.0;
 
 // Один враг: где он сейчас.
 struct Enemy {
@@ -241,7 +243,7 @@ async fn main() {
 
         // Счёт под полоской: подпись и число отдельными надписями.
         draw_text("Score:", BAR_X, SCORE_Y, SCORE_SIZE, WHITE);
-        draw_text(&score.to_string(), BAR_X + 130.0, SCORE_Y, SCORE_SIZE, WHITE);
+        draw_text(&score.to_string(), BAR_X + SCORE_NUMBER_OFFSET, SCORE_Y, SCORE_SIZE, WHITE);
 
         next_frame().await;
     }
