@@ -41,6 +41,14 @@ const RADIUS: f32 = `,
 // Радиус в квадрате. Его тоже достаточно посчитать один раз.
 const RADIUS_SQUARED: f32 = RADIUS * RADIUS;
 
+// Своя функция: квадрат расстояния между двумя точками. Это то, что в
+// уроке «Расстояние» стояло под корнем, только без самого корня.
+fn distance_squared(from_x: f32, from_y: f32, to_x: f32, to_y: f32) -> f32 {
+    let dx = to_x - from_x;
+    let dy = to_y - from_y;
+    dx * dx + dy * dy
+}
+
 #[macroquad::main("Квадрат расстояния")]
 async fn main() {
     loop {
@@ -53,18 +61,12 @@ async fn main() {
         // Координаты курсора.
         let (mouse_x, mouse_y) = mouse_position();
 
-        // Квадрат расстояния от турели до курсора — то, что в уроке
-        // «Расстояние» стояло под корнем, только без самого корня.
-        let dx = mouse_x - center_x;
-        let dy = mouse_y - center_y;
-        let distance_squared = dx * dx + dy * dy;
-
         // Контур — радиус обнаружения турели.
         draw_circle_lines(center_x, center_y, RADIUS, 3.0, GRAY);
 
         // Турель красная, если игрок внутри радиуса, иначе синяя. Сравниваем
         // квадрат расстояния с квадратом радиуса — результат тот же.
-        if distance_squared < RADIUS_SQUARED {
+        if distance_squared(center_x, center_y, mouse_x, mouse_y) < RADIUS_SQUARED {
             draw_circle(center_x, center_y, 40.0, RED);
         } else {
             draw_circle(center_x, center_y, 40.0, BLUE);
