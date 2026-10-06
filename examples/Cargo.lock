@@ -331,6 +331,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "health-bar"
+version = "0.1.0"
+dependencies = [
+ "macroquad",
+]
+
+[[package]]
 name = "if-value"
 version = "0.1.0"
 dependencies = [
