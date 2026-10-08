@@ -560,6 +560,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "patrol"
+version = "0.1.0"
+dependencies = [
+ "macroquad",
+]
+
+[[package]]
 name = "pause"
 version = "0.1.0"
 dependencies = [
