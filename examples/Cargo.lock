@@ -560,6 +560,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "pause"
+version = "0.1.0"
+dependencies = [
+ "macroquad",
+]
+
+[[package]]
 name = "percentages"
 version = "0.1.0"
 dependencies = [
