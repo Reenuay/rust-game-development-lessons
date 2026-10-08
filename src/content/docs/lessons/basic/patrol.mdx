@@ -139,10 +139,10 @@ if enemy.distance_to(goal) <= step {
 use macroquad::prelude::*;
 
 // Радиус кружка, которым рисуем точку пути.
-const POINT_RADIUS: f32 = 14.0;
+const POINT_RADIUS: f32 = 24.0;
 
 // Радиус врага и его скорость в пикселях в секунду.
-const ENEMY_RADIUS: f32 = 30.0;
+const ENEMY_RADIUS: f32 = 40.0;
 const ENEMY_SPEED: f32 = 150.0;
 
 // Точка на экране. Copy и Clone разрешают копировать точку на ходу.
@@ -276,25 +276,25 @@ async fn main() {
         for i in 0..path.len() {
             let from = path[i];
             let to = path[next_index(i, path.len())];
-            draw_line(from.x, from.y, to.x, to.y, 3.0, GRAY);
+            draw_line(from.x, from.y, to.x, to.y, 5.0, GRAY);
         }
 
         // Кружки точек с номерами, чтобы было видно порядок.
         for i in 0..path.len() {
             let point = path[i];
             draw_circle(point.x, point.y, POINT_RADIUS, ORANGE);
-            draw_text(&(i + 1).to_string(), point.x + 20.0, point.y - 20.0, 40.0, WHITE);
+            draw_text(&(i + 1).to_string(), point.x + 30.0, point.y - 30.0, 80.0, WHITE);
         }
 
         // Враг и его глазик.
         draw_circle(enemy.x, enemy.y, ENEMY_RADIUS, RED);
-        let eye = enemy.plus(look.times(20.0));
-        draw_circle(eye.x, eye.y, 8.0, WHITE);
+        let eye = enemy.plus(look.times(26.0));
+        draw_circle(eye.x, eye.y, 11.0, WHITE);
 
         // Подсказка в углу: что сейчас делает враг и что нажать.
         let mode = if patrolling { "Patrol" } else { "Edit" };
-        draw_text(mode, 20.0, 50.0, 50.0, WHITE);
-        draw_text("Space - patrol / stop", 20.0, 90.0, 30.0, GRAY);
+        draw_text(mode, 30.0, 100.0, 100.0, WHITE);
+        draw_text("Space - patrol / stop", 30.0, 170.0, 60.0, GRAY);
 
         next_frame().await;
     }
