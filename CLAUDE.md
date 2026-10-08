@@ -102,6 +102,14 @@ what language a tool result, file, or code comment happens to be in.
   is correct here because the static block is the *only* representation of
   the code — see `mouse-click.mdx`, `movement.mdx`, `else.mdx`.
 
+## Lesson numbers
+
+`sidebar.order` in each lesson's frontmatter is the lesson's position in
+its sidebar section: 1, 2, 3 with no gaps, so it always matches the
+number shown above the title. A new lesson takes the next number; one
+inserted in the middle shifts everything after it by one. When talking
+to the user, name a lesson by that number.
+
 ## Basic vs. extra lessons
 
 - `lessons/basic/` uses a tricky topic (a formula, a piece of math) purely
