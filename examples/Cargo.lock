@@ -328,6 +328,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "game-struct"
+version = "0.1.0"
+dependencies = [
+ "macroquad",
+]
+
+[[package]]
 name = "glam"
 version = "0.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
