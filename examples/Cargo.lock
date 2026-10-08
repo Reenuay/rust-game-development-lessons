@@ -181,6 +181,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "crosshair"
+version = "0.1.0"
+dependencies = [
+ "macroquad",
+]
+
+[[package]]
 name = "cursor"
 version = "0.1.0"
 dependencies = [
