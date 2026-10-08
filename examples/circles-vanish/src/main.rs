@@ -22,6 +22,7 @@ fn distance(from_x: f32, from_y: f32, to_x: f32, to_y: f32) -> f32 {
 async fn main() {
     // Начальный набор кружков — случайные позиции, радиусы и цвета.
     let mut circles: Vec<Circle> = Vec::new();
+    // Номер шага нам не нужен, поэтому вместо имени стоит _.
     for _ in 0..10 {
         circles.push(Circle {
             x: rand::gen_range(40.0, screen_width() - 40.0),
